@@ -16,13 +16,18 @@ IA que participe da migracao.
 - O legado Flask/Vite e fonte de requisitos, nao de arquitetura.
 - A V2 deve ser white-label. Nao grave marca, logo, textos institucionais ou
   valores de uma clinica especifica no codigo.
-- Comentarios e docstrings devem ser em portugues do Brasil quando explicarem
-  regra de negocio, fluxo clinico ou decisao operacional.
+- Comentarios e docstrings devem ser em portugues do Brasil em todo codigo novo
+  ou alterado.
+- Nomes de variaveis, funcoes, classes e tipos devem ser autoexplicativos. Evite
+  abreviacoes que escondam intencao, como `tmp`, `obj`, `val`, `x` ou `data`
+  quando houver nome de dominio melhor.
 
 ## Python 3.14 e Zen do Python
 
 - Prefira codigo explicito a comportamento magico.
 - Uma funcao deve fazer uma coisa principal e retornar um resultado previsivel.
+- Use nomes autoexplicativos para variaveis locais e argumentos, principalmente
+  em regras de dominio clinico, financeiro e fiscal.
 - Use type hints em assinaturas publicas, servicos, repositorios e schemas.
 - Use `StrEnum` para enumeracoes persistidas ou expostas pela API.
 - Use `Decimal` para dinheiro e nao `float`.
@@ -89,6 +94,9 @@ IA que participe da migracao.
 ## Docker e Nginx
 
 - Imagens devem ser pequenas, reproduziveis e sem segredo embutido.
+- Versoes atualizadas por Dependabot/Databot devem ser preservadas. Se uma
+  atualizacao de imagem exigir migracao de volume, como PostgreSQL 18, documente
+  e execute um plano de upgrade em vez de rebaixar silenciosamente a versao.
 - Containers de aplicacao devem rodar sem usuario root sempre que possivel.
 - Use `.dockerignore` para evitar cache, artefatos locais e dependencias
   instaladas no host.

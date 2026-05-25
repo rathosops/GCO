@@ -13,6 +13,8 @@ class Permission(StrEnum):
     TENANT_MANAGE = "tenant.manage"
     APPOINTMENTS_READ = "appointments.read"
     APPOINTMENTS_MANAGE = "appointments.manage"
+    PATIENTS_READ = "patients.read"
+    PATIENTS_WRITE = "patients.write"
     CALLS_READ = "calls.read"
     CALLS_MANAGE = "calls.manage"
     ROOMS_READ = "rooms.read"
@@ -29,6 +31,8 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         Permission.TENANT_READ,
         Permission.APPOINTMENTS_READ,
         Permission.APPOINTMENTS_MANAGE,
+        Permission.PATIENTS_READ,
+        Permission.PATIENTS_WRITE,
         Permission.CALLS_READ,
         Permission.CALLS_MANAGE,
         Permission.ROOMS_READ,
@@ -38,6 +42,7 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
     UserRole.TRIAGE: (
         Permission.TENANT_READ,
         Permission.APPOINTMENTS_READ,
+        Permission.PATIENTS_READ,
         Permission.CALLS_READ,
         Permission.ROOMS_READ,
         Permission.TRIAGE_READ,
@@ -47,6 +52,7 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
     UserRole.DOCTOR: (
         Permission.TENANT_READ,
         Permission.APPOINTMENTS_READ,
+        Permission.PATIENTS_READ,
         Permission.CALLS_READ,
         Permission.ROOMS_READ,
         Permission.PANEL_VIEW,

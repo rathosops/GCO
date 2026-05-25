@@ -149,6 +149,7 @@ http://localhost:8080
 ## Rotas atuais da V2
 
 - `/login`: autenticacao.
+- `/pacientes`: cadastro inicial de pacientes.
 - `/operador`: operacao de chamadas.
 - `/triagem`: conclusao de triagem.
 - `/admin`: administracao minima atual.
@@ -156,6 +157,7 @@ http://localhost:8080
 - `/api/health`: healthcheck simples.
 - `/api/health/ready`: readiness com PostgreSQL e Redis.
 - `/api/v1/tenant/profile`: perfil white-label publico da instalacao.
+- `/api/v1/patients`: cadastro paginado de pacientes.
 
 Novas rotas administrativas e clinicas serao adicionadas conforme o SDD de
 migracao do superservidor.

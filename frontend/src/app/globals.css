@@ -214,6 +214,7 @@ button:disabled {
 .form-stack input,
 .form-stack select,
 .form-stack textarea,
+.filters input,
 .filters select {
   min-height: 40px;
   width: 100%;

@@ -377,7 +377,7 @@ Objetivo: migrar entidades que sustentam os demais fluxos.
 
 Tarefas:
 
-- pacientes;
+- pacientes [iniciado];
 - profissionais;
 - empresas;
 - setores;
@@ -386,6 +386,34 @@ Tarefas:
 - procedimentos;
 - exames;
 - fornecedores.
+
+Entregue em 2026-05-25:
+
+- Criado modulo `patients` independente de agenda, empresas e convenios para
+  evitar acoplamento prematuro.
+- Criada tabela `patients` pela migration `20260525_0003`.
+- Criadas permissoes `patients.read` e `patients.write` no RBAC inicial.
+- Criados endpoints:
+  - `GET /api/v1/patients`;
+  - `GET /api/v1/patients/{patient_id}`;
+  - `GET /api/v1/patients/cpf/{cpf}`;
+  - `POST /api/v1/patients`;
+  - `PUT /api/v1/patients/{patient_id}`.
+- A lista de pacientes ja nasce com envelope `{ data, pagination }`, conforme
+  contrato definido para APIs novas.
+- Criada rota Next.js `/pacientes` com busca, lista, cadastro e edicao simples.
+- Corrigido `AuditLog.payload` para usar `JSONB` em PostgreSQL e `JSON` em
+  SQLite, preservando testes locais sem abandonar o tipo ideal de producao.
+
+Pendente para concluir a fase:
+
+- Profissionais.
+- Empresas, setores e cargos.
+- Convenios.
+- Procedimentos, exames e fornecedores.
+- Vinculos paciente-empresa e paciente-convenio.
+- Ligacao futura entre `appointments.patient_*` e `patients.id`, depois que o
+  fluxo de chamadas estiver preparado para essa mudanca.
 
 ### Fase K: Operacao clinica
 

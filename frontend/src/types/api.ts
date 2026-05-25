@@ -9,6 +9,12 @@ export type User = {
   permissions?: string[];
 };
 
+export type Pagination = {
+  limit: number;
+  offset: number;
+  total: number;
+};
+
 export type TenantProfile = {
   id: number | null;
   trade_name: string;
@@ -33,6 +39,44 @@ export type TokenResponse = {
 };
 
 export type RoomKind = "office" | "triage" | "reception";
+
+export type PatientSex = "female" | "male" | "other" | "not_informed";
+
+export type Patient = {
+  id: number;
+  full_name: string;
+  cpf: string | null;
+  birth_date: string | null;
+  sex: PatientSex;
+  email: string | null;
+  phone: string | null;
+  address_line: string | null;
+  city: string | null;
+  state: string | null;
+  postal_code: string | null;
+  notes: string | null;
+  is_active: boolean;
+};
+
+export type PatientPayload = {
+  full_name: string;
+  cpf?: string | null;
+  birth_date?: string | null;
+  sex: PatientSex;
+  email?: string | null;
+  phone?: string | null;
+  address_line?: string | null;
+  city?: string | null;
+  state?: string | null;
+  postal_code?: string | null;
+  notes?: string | null;
+  is_active: boolean;
+};
+
+export type PatientListResponse = {
+  data: Patient[];
+  pagination: Pagination;
+};
 
 export type Room = {
   id: number;

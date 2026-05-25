@@ -3,6 +3,9 @@ import type {
   Call,
   CallKind,
   PanelState,
+  Patient,
+  PatientListResponse,
+  PatientPayload,
   Room,
   RoomKind,
   TenantProfile,
@@ -94,6 +97,55 @@ export function updateTenantProfile(
   return request<TenantProfile>(
     "/v1/tenant/profile",
     { method: "PUT", body: JSON.stringify(profile) },
+    { token },
+  );
+}
+
+export function listPatients(
+  token: string,
+  filters: { search?: string; limit?: number; offset?: number } = {},
+): Promise<PatientListResponse> {
+  const params = new URLSearchParams();
+
+  if (filters.search) {
+    params.set("search", filters.search);
+  }
+
+  if (filters.limit) {
+    params.set("limit", String(filters.limit));
+  }
+
+  if (filters.offset) {
+    params.set("offset", String(filters.offset));
+  }
+
+  const queryString = params.toString();
+  return request<PatientListResponse>(
+    `/v1/patients${queryString ? `?${queryString}` : ""}`,
+    {},
+    { token },
+  );
+}
+
+export function createPatient(
+  token: string,
+  patient: PatientPayload,
+): Promise<Patient> {
+  return request<Patient>(
+    "/v1/patients",
+    { method: "POST", body: JSON.stringify(patient) },
+    { token },
+  );
+}
+
+export function updatePatient(
+  token: string,
+  patientId: number,
+  patient: PatientPayload,
+): Promise<Patient> {
+  return request<Patient>(
+    `/v1/patients/${patientId}`,
+    { method: "PUT", body: JSON.stringify(patient) },
     { token },
   );
 }

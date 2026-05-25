@@ -5,6 +5,8 @@ export type Permission =
   | "tenant.manage"
   | "appointments.read"
   | "appointments.manage"
+  | "patients.read"
+  | "patients.write"
   | "calls.read"
   | "calls.manage"
   | "rooms.read"
@@ -20,6 +22,8 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "tenant.manage",
     "appointments.read",
     "appointments.manage",
+    "patients.read",
+    "patients.write",
     "calls.read",
     "calls.manage",
     "rooms.read",
@@ -33,6 +37,8 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "tenant.read",
     "appointments.read",
     "appointments.manage",
+    "patients.read",
+    "patients.write",
     "calls.read",
     "calls.manage",
     "rooms.read",
@@ -42,6 +48,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
   triage: [
     "tenant.read",
     "appointments.read",
+    "patients.read",
     "calls.read",
     "rooms.read",
     "triage.read",
@@ -51,6 +58,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
   doctor: [
     "tenant.read",
     "appointments.read",
+    "patients.read",
     "calls.read",
     "rooms.read",
     "panel.view",
