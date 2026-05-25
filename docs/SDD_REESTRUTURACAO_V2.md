@@ -722,22 +722,25 @@ Aceite:
 
 Objetivo: preparar entrega.
 
+Status: concluida em 2026-05-25.
+
 Tarefas:
 
-- `T601`: Ajustar Dockerfiles multi-stage.
-- `T602`: Rodar como usuario nao-root.
-- `T603`: Ajustar pool e workers para Raspberry Pi.
-- `T604`: Configurar logs.
-- `T605`: Criar testes principais.
-- `T606`: Documentar comandos de deploy.
-- `T607`: Revisar seguranca.
+- `T601`: Concluida. Ajustados Dockerfiles multi-stage para backend e frontend; adicionados `.dockerignore` locais para reduzir contexto de build.
+- `T602`: Concluida. API, web e gateway rodam como usuario nao-root; gateway passou a usar imagem `nginxinc/nginx-unprivileged`.
+- `T603`: Concluida. Mantidos pool pequeno de PostgreSQL e `API_WORKERS=1`; Redis recebeu limite configuravel de memoria.
+- `T604`: Concluida. Criada configuracao central de logs da API com `request_id` e logs no stdout dos containers com rotacao.
+- `T605`: Concluida. Criados testes criticos para segredo em producao, JWT e bloqueio de chamada medica antes da triagem.
+- `T606`: Concluida. Criado `docs/DEPLOY_V2.md` com comandos de deploy, migration, admin inicial e validacao.
+- `T607`: Concluida. Revisada seguranca minima: `SECRET_KEY` obrigatoria em producao, headers defensivos no gateway, `no-new-privileges` e CORS por ambiente.
 
 Aceite:
 
-- Ruff passa.
-- TypeScript passa.
-- Testes criticos passam.
-- Stack sobe em ambiente limpo.
+- Concluido: Ruff passa.
+- Concluido: TypeScript passa.
+- Concluido: testes criticos passam.
+- Concluido: stack sobe em ambiente limpo com containers saudaveis.
+- Observacao: `npm install` e build Docker reportaram 2 vulnerabilidades moderadas em dependencias transitivas do frontend; nao foi aplicado `npm audit fix --force` porque pode introduzir breaking changes. Revisar em rodada propria de atualizacao de dependencias.
 
 ## 17. Ordem recomendada para IA
 
@@ -877,3 +880,6 @@ Mitigacao:
 - Validado gateway interno servindo `/operador` e proxy `/api/health` retornando status `ok`.
 - Validado login via gateway interno em `/api/v1/auth/login` com usuario administrativo de desenvolvimento.
 - Criada base de governanca do repositorio antes da Fase G: `.gitignore`, `.gitattributes`, `README.md`, workflows de CI/CD, Dependabot, templates de issue/PR, `CODEOWNERS` placeholder e politica inicial de seguranca.
+- Executada a Fase G: Dockerfiles multi-stage revisados, gateway nao-root, logs centralizados, limites para Raspberry Pi, testes criticos e documentacao de deploy.
+- Validado `python -m ruff format --check .`, `python -m ruff check .`, `python -m pytest`, `npm run lint`, `npm run typecheck`, `npm run build`, `docker compose config`, `docker compose build api web`, `docker compose up -d`, `alembic upgrade head`, `alembic check`, `/api/health`, `/api/health/ready`, gateway `/health` e frontend via gateway em `/operador`.
+- Registrada pendencia de seguranca: npm audit reporta 2 vulnerabilidades moderadas em dependencias transitivas do frontend; corrigir em rodada dedicada para evitar upgrade forcado com breaking changes.

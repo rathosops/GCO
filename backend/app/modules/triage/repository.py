@@ -18,4 +18,3 @@ class TriageRecordRepository(Repository[TriageRecord]):
             TriageRecord.appointment_id == appointment_id
         )
         return self.session.scalar(statement)
-

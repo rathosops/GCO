@@ -21,4 +21,3 @@ class UserRepository(Repository[User]):
         """Return whether a username is already in use."""
 
         return self.get_by_username(username) is not None
-

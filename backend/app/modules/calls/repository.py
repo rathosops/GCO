@@ -22,4 +22,3 @@ class CallRepository(Repository[Call]):
 
         statement = select(func.coalesce(func.max(Call.sequence_number), 0) + 1)
         return int(self.session.scalar(statement) or 1)
-

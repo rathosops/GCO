@@ -24,4 +24,3 @@ class TriageRead(BaseModel):
     completed_at: datetime | None
 
     model_config = {"from_attributes": True}
-

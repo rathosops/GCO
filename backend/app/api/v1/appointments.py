@@ -19,10 +19,7 @@ async def list_appointments(
     """List appointments."""
 
     appointments = AppointmentService(session).list_appointments()
-    return [
-        AppointmentRead.model_validate(appointment)
-        for appointment in appointments
-    ]
+    return [AppointmentRead.model_validate(appointment) for appointment in appointments]
 
 
 @router.post("", response_model=AppointmentRead)
@@ -35,4 +32,3 @@ async def create_appointment(
 
     appointment = AppointmentService(session).create_appointment(payload, current_user)
     return AppointmentRead.model_validate(appointment)
-

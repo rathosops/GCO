@@ -59,4 +59,3 @@ class AuthService:
         self.session.commit()
         self.session.refresh(user)
         return user
-

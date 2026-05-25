@@ -50,4 +50,3 @@ async def update_room(
     except DomainError as exc:
         raise domain_error_to_http(exc) from exc
     return RoomRead.model_validate(room)
-

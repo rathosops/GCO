@@ -14,7 +14,7 @@ from app.modules.auth.repository import UserRepository
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
-def get_db() -> Generator[Session, None, None]:
+def get_db() -> Generator[Session]:
     """Yield a database session for route handlers."""
 
     yield from get_db_session()
@@ -66,4 +66,3 @@ def require_roles(*roles: UserRole) -> Callable[[User], User]:
         return user
 
     return dependency
-

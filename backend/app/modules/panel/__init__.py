@@ -1,2 +1,1 @@
 """Panel domain module."""
-

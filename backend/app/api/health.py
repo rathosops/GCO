@@ -66,4 +66,3 @@ def _check_redis() -> str:
     except RedisError:
         return "error"
     return "ok"
-

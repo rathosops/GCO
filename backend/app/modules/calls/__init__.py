@@ -1,2 +1,1 @@
 """Calls domain module."""
-

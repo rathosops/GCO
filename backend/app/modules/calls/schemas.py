@@ -42,4 +42,3 @@ class CallRead(BaseModel):
     notes: str | None
 
     model_config = {"from_attributes": True}
-

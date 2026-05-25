@@ -22,4 +22,3 @@ class RoomRepository(Repository[Room]):
 
         statement = select(Room).where(Room.code == code)
         return self.session.scalar(statement)
-

@@ -13,7 +13,9 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(payload: LoginRequest, session: Session = Depends(get_db)) -> TokenResponse:
+async def login(
+    payload: LoginRequest, session: Session = Depends(get_db)
+) -> TokenResponse:
     """Authenticate a user and return a bearer token."""
 
     try:
@@ -42,4 +44,4 @@ async def me(current_user: User = Depends(get_current_user)) -> UserRead:
 async def logout(_current_user: User = Depends(get_current_user)) -> None:
     """Accept logout requests for stateless bearer-token clients."""
 
-    return None
+    return

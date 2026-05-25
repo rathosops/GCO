@@ -2,6 +2,7 @@
 
 from collections.abc import Generator
 from datetime import UTC, datetime
+from typing import ClassVar
 
 from sqlalchemy import BigInteger, DateTime, MetaData, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
@@ -22,7 +23,7 @@ class Base(DeclarativeBase):
     """Base class for all SQLAlchemy models."""
 
     metadata = MetaData(naming_convention=NAMING_CONVENTION)
-    type_annotation_map = {
+    type_annotation_map: ClassVar[dict[object, object]] = {
         int: BigInteger(),
         datetime: DateTime(timezone=True),
     }
@@ -61,7 +62,7 @@ SessionLocal = sessionmaker(
 )
 
 
-def get_db_session() -> Generator[Session, None, None]:
+def get_db_session() -> Generator[Session]:
     """Yield a database session for request-scoped use."""
 
     session = SessionLocal()

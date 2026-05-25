@@ -16,4 +16,3 @@ class AppointmentRepository(Repository[Appointment]):
 
         statement = select(Appointment).order_by(Appointment.scheduled_for).limit(limit)
         return list(self.session.scalars(statement))
-

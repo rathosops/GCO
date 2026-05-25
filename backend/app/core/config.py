@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 480
     cors_origins: str = "http://localhost,http://127.0.0.1"
     ws_heartbeat_seconds: int = 30
+    log_level: str = "INFO"
 
     panel_max_visible_calls: int = 5
     panel_call_display_seconds: int = 60
@@ -48,14 +49,25 @@ class Settings(BaseSettings):
         """Return configured CORS origins as a normalized list."""
 
         return [
-            origin.strip()
-            for origin in self.cors_origins.split(",")
-            if origin.strip()
+            origin.strip() for origin in self.cors_origins.split(",") if origin.strip()
         ]
+
+    def validate_production_security(self) -> None:
+        """Fail fast when production is started with unsafe defaults."""
+
+        if self.is_development:
+            return
+
+        secret = self.secret_key.get_secret_value()
+        if secret == "change-me" or len(secret) < 32:
+            msg = "SECRET_KEY deve ser definido com ao menos 32 caracteres em producao"
+            raise RuntimeError(msg)
 
 
 @lru_cache
 def get_settings() -> Settings:
     """Return cached application settings."""
 
-    return Settings()
+    settings = Settings()
+    settings.validate_production_security()
+    return settings

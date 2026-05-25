@@ -15,4 +15,3 @@ class InactiveUserError(AuthError):
 
 class UserAlreadyExistsError(AuthError):
     """A user with the same username already exists."""
-

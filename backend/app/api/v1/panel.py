@@ -17,13 +17,6 @@ async def panel_state(session: Session = Depends(get_db)) -> PanelState:
 
     service = PanelService(session)
     return PanelState(
-        active_calls=[
-            CallRead.model_validate(call)
-            for call in service.active_calls()
-        ],
-        recent_calls=[
-            CallRead.model_validate(call)
-            for call in service.recent_calls()
-        ],
+        active_calls=[CallRead.model_validate(call) for call in service.active_calls()],
+        recent_calls=[CallRead.model_validate(call) for call in service.recent_calls()],
     )
-

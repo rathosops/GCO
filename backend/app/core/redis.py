@@ -32,4 +32,3 @@ def get_async_redis_client() -> AsyncRedis:
         socket_connect_timeout=2,
         socket_timeout=2,
     )
-

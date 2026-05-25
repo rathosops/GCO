@@ -25,4 +25,3 @@ class PanelService:
         """Return recent calls for reconnect fallback."""
 
         return self.calls.list_recent(limit=20)
-

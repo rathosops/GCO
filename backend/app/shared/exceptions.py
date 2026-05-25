@@ -11,4 +11,3 @@ class NotFoundError(DomainError):
 
 class BusinessRuleError(DomainError):
     """Operation violates a domain rule."""
-

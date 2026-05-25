@@ -1,13 +1,13 @@
 """Small repository base classes shared by domain modules."""
 
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 from sqlalchemy.orm import Session
 
 ModelT = TypeVar("ModelT")
 
 
-class Repository(Generic[ModelT]):
+class Repository[ModelT]:
     """Base repository with session ownership kept outside the class."""
 
     model: type[ModelT]
@@ -25,4 +25,3 @@ class Repository(Generic[ModelT]):
 
         self.session.add(model)
         return model
-

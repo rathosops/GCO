@@ -114,5 +114,6 @@ O plano tecnico da reestruturacao esta em:
 
 - `docs/SDD_REESTRUTURACAO_V2.md`
 - `docs/REFATORACAO_MONOLITO_MODULAR_V2.md`
+- `docs/DEPLOY_V2.md`
 
 Toda fase estrutural deve atualizar o SDD quando alterar contrato, arquitetura, dependencias ou criterios de aceite.

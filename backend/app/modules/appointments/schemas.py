@@ -31,4 +31,3 @@ class AppointmentRead(BaseModel):
     external_id: str | None
 
     model_config = {"from_attributes": True}
-

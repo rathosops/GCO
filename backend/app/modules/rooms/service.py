@@ -2,8 +2,8 @@
 
 from sqlalchemy.orm import Session
 
-from app.modules.auth.models import User
 from app.modules.audit.service import record_audit
+from app.modules.auth.models import User
 from app.modules.rooms.models import Room
 from app.modules.rooms.repository import RoomRepository
 from app.modules.rooms.schemas import RoomCreate, RoomUpdate
@@ -72,4 +72,3 @@ class RoomService:
         self.session.commit()
         self.session.refresh(room)
         return room
-

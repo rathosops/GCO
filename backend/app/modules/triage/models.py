@@ -44,4 +44,3 @@ class TriageRecord(Base, TimestampMixin):
 
     appointment = relationship("Appointment", back_populates="triage_record")
     triaged_by_user = relationship("User", back_populates="triage_records")
-

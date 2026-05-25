@@ -22,4 +22,3 @@ def domain_error_to_http(exc: Exception) -> HTTPException:
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="Erro interno",
     )
-

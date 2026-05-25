@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 from app.modules.appointments.models import Appointment, AppointmentStatus
 from app.modules.appointments.repository import AppointmentRepository
 from app.modules.appointments.schemas import AppointmentCreate
-from app.modules.auth.models import User
 from app.modules.audit.service import record_audit
+from app.modules.auth.models import User
 from app.shared.exceptions import NotFoundError
 
 
@@ -58,4 +58,3 @@ class AppointmentService:
         if appointment is None:
             raise NotFoundError("Agendamento nao encontrado")
         return appointment
-

@@ -17,4 +17,3 @@ async def panel_websocket(websocket: WebSocket) -> None:
             await websocket.receive_text()
     except WebSocketDisconnect:
         await manager.disconnect(websocket)
-

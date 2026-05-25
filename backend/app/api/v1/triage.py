@@ -31,4 +31,3 @@ async def complete_triage(
     except DomainError as exc:
         raise domain_error_to_http(exc) from exc
     return TriageRead.model_validate(record)
-

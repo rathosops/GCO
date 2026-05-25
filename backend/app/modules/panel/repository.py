@@ -8,4 +8,3 @@ class PanelSettingRepository(Repository[PanelSetting]):
     """Repository for panel setting persistence."""
 
     model = PanelSetting
-

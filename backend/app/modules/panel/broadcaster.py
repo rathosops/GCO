@@ -72,7 +72,7 @@ async def subscribe_panel_events() -> None:
                 if event.payload.get("_source_id") == PANEL_EVENT_SOURCE_ID:
                     continue
                 await manager.broadcast(event)
-        except (RedisError, OSError, ValueError):
+        except RedisError, OSError, ValueError:
             await asyncio.sleep(2)
         finally:
             with contextlib.suppress(Exception):

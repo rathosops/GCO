@@ -8,4 +8,3 @@ class AuditLogRepository(Repository[AuditLog]):
     """Repository for audit log persistence."""
 
     model = AuditLog
-

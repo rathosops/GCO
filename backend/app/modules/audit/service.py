@@ -25,4 +25,3 @@ def record_audit(
     )
     session.add(log)
     return log
-

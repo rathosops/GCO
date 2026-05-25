@@ -39,4 +39,3 @@ class CreateUserCommand(BaseModel):
     display_name: str = Field(min_length=1, max_length=120)
     password: str = Field(min_length=8)
     role: UserRole = UserRole.ADMIN
-

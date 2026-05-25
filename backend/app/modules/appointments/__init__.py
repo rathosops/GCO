@@ -1,2 +1,1 @@
 """Appointments domain module."""
-

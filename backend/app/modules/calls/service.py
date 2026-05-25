@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session
 
 from app.modules.appointments.models import AppointmentStatus
 from app.modules.appointments.repository import AppointmentRepository
-from app.modules.auth.models import User
 from app.modules.audit.service import record_audit
+from app.modules.auth.models import User
 from app.modules.calls.models import Call, CallKind, CallStatus
 from app.modules.calls.repository import CallRepository
 from app.modules.calls.schemas import CallCreate, CallFinish
@@ -56,7 +56,9 @@ class CallService:
             and payload.kind == CallKind.DOCTOR
             and not TriageService(self.session).is_completed(appointment.id)
         ):
-            raise BusinessRuleError("Paciente precisa concluir triagem antes da chamada")
+            raise BusinessRuleError(
+                "Paciente precisa concluir triagem antes da chamada"
+            )
 
         now = datetime.now(UTC)
         call = Call(

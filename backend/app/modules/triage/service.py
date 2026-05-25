@@ -5,8 +5,8 @@ from datetime import UTC, datetime
 from sqlalchemy.orm import Session
 
 from app.modules.appointments.repository import AppointmentRepository
-from app.modules.auth.models import User
 from app.modules.audit.service import record_audit
+from app.modules.auth.models import User
 from app.modules.triage.models import TriageRecord, TriageStatus
 from app.modules.triage.repository import TriageRecordRepository
 from app.modules.triage.schemas import TriageComplete
@@ -68,4 +68,3 @@ class TriageService:
 
         record = self.triage_records.get_by_appointment_id(appointment_id)
         return record is not None and record.status == TriageStatus.COMPLETED.value
-
