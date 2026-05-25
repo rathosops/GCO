@@ -1,0 +1,1452 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>
+      ASO{% if paciente and paciente.nome and paciente.nome != '—' %} — {{
+      paciente.nome }}{% endif %}
+    </title>
+    <style>
+      @page {
+        size: A4;
+        margin: 3mm 5mm 3mm 5mm;
+        @bottom-center {
+          content: "Pág. " counter(page) "/" counter(pages)
+            " — Centro Médico Integrado — NR-7 (Port. MTP 567/2022)";
+          font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+          font-size: 5pt;
+          color: #999;
+        }
+      }
+      :root {
+        /* Cores suaves — B&W safe */
+        --dk: #222;
+        --md: #444;
+        --n9: #000;
+        --n8: #222;
+        --n7: #444;
+        --n5: #777;
+        --n4: #999;
+        --n3: #c8c8c8;
+        --n2: #ddd;
+        --n1: #efefef;
+        --n0: #f8f8f8;
+        --lt: #e0e0e0;
+        --bg: #f4f4f4;
+        --ok: #2a6e2a;
+        --ok-bg: #ecf5ec;
+        --no: #7a2020;
+        --no-bg: #f5ecec;
+        --wn: #6e5a10;
+        --wn-bg: #f5f2e6;
+        --fem: #8a2060;
+        --fem-bg: #faf0f5;
+        --fem-bdr: #c87da5;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 8.5pt;
+        color: var(--n8);
+        line-height: 1.18;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      /* ═══ HEADER ═══ */
+      .hdr {
+        display: flex;
+        align-items: center;
+        background: var(--dk) !important;
+        color: #fff;
+        padding: 3px 8px;
+        margin-bottom: 2px;
+        border-radius: 2px;
+      }
+      .hdr img {
+        max-height: 30px;
+        max-width: 36px;
+        margin-right: 6px;
+      }
+      .hdr-c {
+        flex: 1;
+        text-align: center;
+      }
+      .hdr-c h1 {
+        font-size: 11.5pt;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: #fff;
+      }
+      .hdr-c .sub {
+        font-size: 8pt;
+        font-weight: 600;
+        color: #ddd;
+      }
+      .hdr-c .sub2 {
+        font-size: 5.5pt;
+        color: #aaa;
+      }
+      .hdr-c .tag {
+        display: inline-block;
+        font-size: 6pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 1px 5px;
+        border-radius: 2px;
+        background: rgba(255, 255, 255, 0.2);
+        color: #ddd;
+        margin-top: 1px;
+      }
+      .hdr-r {
+        flex: 0 0 60px;
+        text-align: right;
+        font-size: 6pt;
+        color: #aaa;
+        line-height: 1.4;
+      }
+      .hdr-r strong {
+        color: #fff;
+        font-size: 7pt;
+      }
+
+      .sec {
+        margin-bottom: 1.5px;
+      }
+      .sec-t {
+        font-size: 7pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: #fff !important;
+        padding: 1.5px 6px;
+        background: var(--dk) !important;
+        margin-bottom: 1px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .sec-b {
+        padding: 0 1px;
+      }
+
+      /* ═══ FIELDS ═══ */
+      .fg {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .fg td {
+        padding: 1px 3px;
+        vertical-align: bottom;
+        font-size: 8.5pt;
+      }
+      .fg .lbl {
+        font-weight: 700;
+        color: var(--n7);
+        white-space: nowrap;
+        width: 1%;
+        font-size: 7.5pt;
+        padding-right: 3px;
+      }
+      .fg .val {
+        color: var(--n9);
+        border-bottom: 1.5px solid var(--n3);
+        font-weight: 500;
+        height: 17px;
+        font-size: 9pt;
+      }
+      .fg .val-blank {
+        border-bottom: 1.5px solid var(--n3);
+        height: 17px;
+      }
+      .wk {
+        background: var(--bg);
+        border: 1.5px solid var(--n3);
+        border-left: 4px solid var(--dk);
+        padding: 1px 3px;
+        border-radius: 2px;
+      }
+      .wk .val,
+      .wk .val-blank {
+        border-bottom: 2px solid var(--dk);
+        height: 19px;
+        font-size: 9.5pt;
+        font-weight: 700;
+      }
+      .wk .nome-val {
+        font-size: 10.5pt;
+        font-weight: 800;
+        height: 20px;
+      }
+
+      /* ═══ TIPO EXAME ═══ */
+      .ext {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .ext td {
+        padding: 2px 2px;
+        font-size: 8pt;
+        font-weight: 500;
+        vertical-align: middle;
+        text-align: left;
+        white-space: nowrap;
+      }
+      .ext .ec {
+        width: 20%;
+        padding: 2px 4px;
+      }
+
+      /* FIX: Checkboxes Unificados e Padronizados (com flex-shrink e min-width/height) */
+      .cb,
+      .sex-cb,
+      .mc {
+        display: inline-block;
+        flex-shrink: 0;
+        text-align: center;
+        line-height: 11px;
+        width: 12px;
+        height: 12px;
+        min-width: 12px;
+        min-height: 12px;
+        border: 1.5px solid var(--n7);
+        border-radius: 1.5px;
+        font-size: 7.5pt;
+        font-weight: 800;
+        vertical-align: middle;
+        margin-right: 3px;
+      }
+      .conc-cb {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        min-width: 16px;
+        min-height: 16px;
+        border: 2px solid #000;
+        border-radius: 2px;
+        background: #fff;
+        box-sizing: border-box;
+      }
+      .conc-line {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px 18px;
+        font-size: 9pt;
+        font-weight: 700;
+      }
+
+      .conc-line span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap;
+      }
+      .footer-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-top: 10mm;
+      }
+      .footer-left {
+        font-size: 7pt;
+        color: var(--n5);
+      }
+      .cb.on,
+      .sex-cb.on,
+      .mc.on {
+        background: var(--lt);
+        border-color: var(--n8);
+      }
+      .fem-sec .mc {
+        border-color: var(--fem);
+      }
+
+      .sex-box {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 9pt;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .sex-item {
+        display: flex;
+        align-items: center;
+      }
+
+      .grp-t {
+        font-size: 6.5pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        color: #fff !important;
+        padding: 1.5px 5px;
+        background: var(--md) !important;
+        margin-top: 1px;
+        margin-bottom: 0;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      /* ═══ QUESTION TABLE — Sim/Não ═══ */
+      .qt {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .qt th {
+        font-size: 5.5pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--n5);
+        padding: 1px 2px;
+        text-align: center;
+        border-bottom: 1.5px solid var(--n5);
+      }
+      .qt th.qt-txt {
+        text-align: left;
+      }
+      .qt th.qt-sn {
+        width: 16px;
+      }
+      .qt td {
+        padding: 1px 2px;
+        font-size: 8pt;
+        vertical-align: middle;
+        border-bottom: 0.5px solid var(--n2);
+      }
+      .qt tr:nth-child(even) td {
+        background: var(--n0);
+      }
+      .qt .qn {
+        width: 14px;
+        font-weight: 700;
+        color: var(--n5);
+        text-align: right;
+        font-size: 6.5pt;
+        padding-right: 2px;
+      }
+      .qt .qtx {
+        line-height: 1.1;
+      }
+      .qt .qc {
+        width: 16px;
+        text-align: center;
+      }
+
+      /* ═══ Pergunta com linha de resposta inline ═══ */
+      .qw {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 4px;
+        padding: 2px;
+        border-bottom: 0.5px solid var(--n2);
+        font-size: 8pt;
+        line-height: 1.3;
+      }
+      .qw:nth-child(even) {
+        background: var(--n0);
+      }
+      .qw-n {
+        flex: 0 0 14px;
+        font-weight: 700;
+        color: var(--n5);
+        text-align: right;
+        font-size: 6.5pt;
+      }
+      .qw-t {
+        flex: 0 1 auto;
+        white-space: normal;
+      }
+      .qw-sn {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 6.5pt;
+        color: var(--n5);
+        white-space: nowrap;
+      }
+      .qw-line {
+        flex: 1 1 100px;
+        border-bottom: 1px solid var(--n3);
+        min-height: 12px;
+        font-size: 8pt;
+        color: var(--n9);
+      }
+
+      /* ═══ FEMININE SECTION ═══ */
+      .fem-sec {
+        border: 2px solid var(--fem-bdr);
+        border-left: 4px solid var(--fem);
+        border-radius: 3px;
+        background: var(--fem-bg);
+        padding: 2px 3px;
+        margin-top: 1px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .fem-hdr {
+        font-size: 7.5pt;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: var(--fem);
+        padding: 1px 3px;
+        margin-bottom: 1px;
+        border-bottom: 2px solid var(--fem-bdr);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .fem-hdr .fi {
+        font-size: 11pt;
+      }
+      .fem-hdr .fn {
+        font-size: 6pt;
+        font-weight: 400;
+        text-transform: none;
+        color: var(--fem);
+        opacity: 0.8;
+      }
+      .fem-sec .qw-line {
+        border-bottom-color: var(--fem-bdr);
+      }
+
+      /* ═══ FREE BOX ═══ */
+      .fb {
+        border: 1.5px solid var(--n3);
+        border-radius: 2px;
+        padding: 2px 4px;
+        font-size: 8.5pt;
+        line-height: 1.3;
+        background: #fff;
+      }
+      .fb-s {
+        min-height: 14px;
+      }
+      .fb-m {
+        min-height: 25mm;
+      }
+
+      /* ═══ PAGE 2 ═══ */
+      .p2w {
+        display: flex;
+        flex-direction: column;
+        min-height: 287mm;
+      }
+      .p2c {
+        flex: 1 1 auto;
+      }
+      .p2b {
+        flex: 0 0 auto;
+        page-break-inside: avoid;
+      }
+      .hdr2 {
+        display: flex;
+        align-items: center;
+        background: var(--dk) !important;
+        color: #fff;
+        padding: 2px 8px;
+        margin-bottom: 2px;
+        border-radius: 2px;
+      }
+      .hdr2 img {
+        max-height: 22px;
+        max-width: 30px;
+        margin-right: 5px;
+      }
+      .hdr2-t {
+        flex: 1;
+        font-size: 8pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #fff;
+      }
+      .hdr2-r {
+        font-size: 6pt;
+        color: #aaa;
+        text-align: right;
+      }
+      .hdr2-r strong {
+        color: #fff;
+        font-size: 7pt;
+        display: block;
+      }
+
+      .zd {
+        border: none;
+        border-top: 2px dashed var(--n5);
+        margin: 2px 0 1px;
+      }
+      .zl {
+        display: inline-block;
+        font-size: 6.5pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        padding: 1px 7px;
+        border-radius: 2px;
+        margin-bottom: 1px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .zl-p {
+        background: var(--lt);
+        color: var(--n7);
+        border: 1px solid var(--n3);
+      }
+      .zl-m {
+        background: var(--dk) !important;
+        color: #fff !important;
+      }
+      .mz {
+        background: var(--n1);
+        border: 2px solid var(--n5);
+        border-left: 5px solid var(--dk);
+        border-radius: 3px;
+        padding: 3px 5px;
+        margin-top: 1px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .mz .sec-t {
+        background: var(--md) !important;
+      }
+
+      /* ═══ VITAIS ═══ */
+      .vg {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 2px;
+      }
+      .vg td {
+        padding: 2px 3px;
+        font-size: 9pt;
+        vertical-align: bottom;
+      }
+      .vg .lbl {
+        font-weight: 700;
+        color: var(--n7);
+        font-size: 8.5pt;
+        white-space: nowrap;
+        width: 1%;
+      }
+      .vg .val,
+      .vg .val-blank {
+        border-bottom: 1.5px solid var(--n3);
+        height: 22px;
+      }
+      .vg .unit {
+        font-size: 7pt;
+        color: var(--n4);
+        width: 1%;
+        white-space: nowrap;
+      }
+
+      /* ═══ EXAME FÍSICO ═══ */
+      .ef {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .ef td {
+        padding: 2px 3px;
+        font-size: 8.5pt;
+        vertical-align: top;
+        border-bottom: 1px solid var(--n2);
+        min-height: 16px;
+      }
+      .ef .ef-lbl {
+        font-weight: 700;
+        color: var(--n7);
+        font-size: 8pt;
+        white-space: nowrap;
+        width: 1%;
+        vertical-align: top;
+        padding-top: 3px;
+      }
+      .ef .ef-v {
+        color: var(--n9);
+        font-size: 9pt;
+        min-height: 34px;
+        height: 34px;
+      }
+      .ef .ef-v2 {
+        color: var(--n9);
+        font-size: 9pt;
+        min-height: 56px;
+        height: 56px;
+      }
+
+      /* ═══ CONCLUSÃO ═══ */
+      .conc {
+        border: 2.5px solid var(--n3);
+        border-radius: 3px;
+        padding: 3px 5px;
+        text-align: center;
+      }
+      .conc.ok {
+        border-color: var(--ok);
+        background: var(--ok-bg);
+      }
+      .conc.no {
+        border-color: var(--no);
+        background: var(--no-bg);
+      }
+      .conc.wn {
+        border-color: var(--wn);
+        background: var(--wn-bg);
+      }
+      .conc-lbl {
+        font-size: 6.5pt;
+        text-transform: uppercase;
+        color: var(--n5);
+      }
+      .conc-v {
+        font-size: 11pt;
+        font-weight: 800;
+        letter-spacing: 1px;
+      }
+      .conc.ok .conc-v {
+        color: var(--ok);
+      }
+      .conc.no .conc-v {
+        color: var(--no);
+      }
+      .conc.wn .conc-v {
+        color: var(--wn);
+      }
+      .rest {
+        background: var(--wn-bg);
+        border: 1px solid #c4a020;
+        border-radius: 2px;
+        padding: 2px 4px;
+        font-size: 8pt;
+        margin-top: 1px;
+      }
+      .rest strong {
+        color: var(--wn);
+      }
+
+      .decl {
+        background: var(--n1);
+        border: 1px solid var(--n3);
+        border-radius: 2px;
+        padding: 3px 6px;
+        font-size: 7pt;
+        color: var(--n7);
+        text-align: justify;
+        line-height: 1.3;
+      }
+      .sigs {
+        display: flex;
+        gap: 20px;
+      }
+      .sig {
+        flex: 1;
+        text-align: center;
+      }
+      .sig-ln {
+        border-top: 1.5px solid var(--n8);
+        margin: 7mm 8px 1px;
+      }
+      .sig-nm {
+        font-weight: 700;
+        font-size: 8pt;
+        color: var(--n9);
+        min-height: 10px;
+      }
+      .sig-sb {
+        font-size: 6pt;
+        color: var(--n5);
+      }
+      .legal {
+        font-size: 4.5pt;
+        color: var(--n4);
+        text-align: justify;
+        margin-top: 1.5mm;
+        padding-top: 1px;
+        border-top: 0.5px solid var(--n3);
+        line-height: 1.1;
+      }
+
+      .s2 {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1px;
+      }
+      .s2 td {
+        vertical-align: top;
+        padding: 0;
+      }
+      .s2 .cl {
+        padding-right: 2px;
+      }
+      .s2 .cr {
+        padding-left: 2px;
+      }
+      .avoid {
+        page-break-inside: avoid;
+      }
+      .pg-brk {
+        page-break-after: always;
+      }
+      .mut {
+        color: var(--n5);
+      }
+      .obs-section {
+        margin-top: 2px;
+      }
+      .obs-label {
+        font-size: 7.5pt;
+        font-weight: 700;
+        color: var(--n8);
+        margin-bottom: 0.5px;
+      }
+      .q2col {
+        display: flex;
+        gap: 4px;
+        width: 100%;
+      }
+      .q2col > div {
+        flex: 1;
+        min-width: 0;
+      }
+    </style>
+  </head>
+  <body>
+    {% set modo = modo | default('preenchido') %} {% set is_blank = (modo ==
+    'branco') %} {% set show_data = (not is_blank) %} {% set vc = 'val-blank' if
+    is_blank else 'val' %} {% set show_answers = (modo == 'preenchido') %} {#
+    Row simples Sim/Não #} {% macro qr(num, p) %}
+    <tr>
+      <td class="qn">{{ num }}.</td>
+      <td class="qtx">{{ p.texto }}</td>
+      <td class="qc">
+        <span
+          class="mc {{ 'on' if (show_answers and p.resposta == 'sim') else '' }}"
+          >{% if show_answers and p.resposta == 'sim' %}✓{% endif %}</span
+        >
+      </td>
+      <td class="qc">
+        <span
+          class="mc {{ 'on' if (show_answers and p.resposta == 'nao') else '' }}"
+          >{% if show_answers and p.resposta == 'nao' %}✓{% endif %}</span
+        >
+      </td>
+    </tr>
+    {% endmacro %} {# Row com campo de escrita inline. Parâmetro multiline
+    empurra a linha para baixo #} {% macro qw(num, p, multiline=false) %}
+    <div class="qw">
+      <span class="qw-n">{{ num }}.</span>
+      <span class="qw-t">{{ p.texto }}</span>
+      <span class="qw-sn">
+        S
+        <span
+          class="mc {{ 'on' if (show_answers and p.resposta == 'sim') else '' }}"
+          >{% if show_answers and p.resposta == 'sim' %}✓{% endif %}</span
+        >
+        N
+        <span
+          class="mc {{ 'on' if (show_answers and p.resposta == 'nao') else '' }}"
+          >{% if show_answers and p.resposta == 'nao' %}✓{% endif %}</span
+        >
+      </span>
+      <span
+        class="qw-line"
+        {%
+        if
+        multiline
+        %}style="flex: 1 1 100%; margin-top: 2px;"
+        {%
+        endif
+        %}
+        >{% if show_answers and p.observacao %}{{ p.observacao }}{% endif
+        %}</span
+      >
+    </div>
+    {% endmacro %} {% macro th_sn() %}
+    <thead>
+      <tr>
+        <th style="width: 14px">#</th>
+        <th class="qt-txt">Pergunta</th>
+        <th class="qt-sn">S</th>
+        <th class="qt-sn">N</th>
+      </tr>
+    </thead>
+    {% endmacro %} {# ═══════════ PÁGINA 1 — FRENTE ═══════════ #}
+    <div class="hdr">
+      {% if logo_path %}<img src="{{ logo_path }}" alt="CMI" />{% endif %}
+      <div class="hdr-c">
+        <h1>{{ clinica.nome | default('Centro Médico Integrado') }}</h1>
+        <div class="sub">Ficha Clínica — Anamnese Ocupacional (ASO)</div>
+        {% if modo == 'branco' %}
+        <div class="tag">Preenchimento Manual</div>
+        {% elif modo == 'parcial' %}
+        <div
+          class="tag"
+          style="background: rgba(255, 255, 255, 0.35); color: #eee"
+        >
+          Dados do Paciente
+        </div>
+        {% endif %}
+        <div class="sub2">NR-7 (Portaria MTP nº 567/2022) — PCMSO</div>
+      </div>
+      <div class="hdr-r">
+        <strong>Emissão</strong><br />{{ data_geracao }}<br />{% if aso_id
+        %}<strong>Nº</strong> {{ aso_id }}{% endif %}
+      </div>
+    </div>
+
+    {# ── I Tipo de Exame + II Empresa ── #}
+    <table class="s2">
+      <tr>
+        <td class="cl" style="width: 30%">
+          <div class="sec avoid">
+            <div class="sec-t">I — Tipo de Exame Médico Ocupacional</div>
+            <div class="sec-b">
+              <table class="ext">
+                {% set tipos =
+                [('ADMISSIONAL','Admissional'),('PERIODICO','Periódico'),('RETORNO_AO_TRABALHO','Ret.
+                Trabalho'),('MUDANCA_DE_FUNCAO','Mud.
+                Risco'),('DEMISSIONAL','Demissional')] %} {% for val, lbl in
+                tipos %}
+                <tr>
+                  <td class="ec">
+                    <span class="cb {{ 'on' if tipo_de_exame == val else '' }}"
+                      >{% if tipo_de_exame == val %}✓{% endif %}</span
+                    >
+                    {{ lbl }}
+                  </td>
+                </tr>
+                {% endfor %}
+              </table>
+            </div>
+          </div>
+        </td>
+        <td class="cr" style="width: 70%">
+          <div class="sec avoid">
+            <div class="sec-t">II — Empresa</div>
+            <div class="sec-b">
+              <table class="fg">
+                <tr>
+                  <td class="lbl" style="width: 1%">Razão Social:</td>
+                  <td class="{{ vc }}">
+                    {% if show_data %}{{ empresa.nome }}{% endif %}
+                  </td>
+                </tr>
+                <tr>
+                  <td class="lbl">CNPJ:</td>
+                  <td class="{{ vc }}">
+                    {% if show_data %}{{ empresa.cnpj }}{% endif %}
+                  </td>
+                </tr>
+                <tr>
+                  <td class="lbl">Endereço:</td>
+                  <td class="{{ vc }}">
+                    {% if show_data %}{{ empresa.endereco | default('') }}{%
+                    endif %}
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    {# ── III Trabalhador ── #}
+    <div class="sec avoid">
+      <div class="sec-t">III — Trabalhador</div>
+      <div class="sec-b">
+        <div class="wk">
+          <table class="fg">
+            <tr>
+              <td class="lbl" style="width: 8%">Nome:</td>
+              <td class="{{ vc }} nome-val">
+                {% if show_data %}{{ paciente.nome }}{% endif %}
+              </td>
+            </tr>
+          </table>
+          <table class="fg">
+            <colgroup>
+              <col style="width: 6%" />
+              <col style="width: 16%" />
+              <col style="width: 8%" />
+              <col style="width: 11%" />
+              <col style="width: 5%" />
+              <col style="width: 6%" />
+              <col style="width: 6%" />
+              <col style="width: 14%" />
+              <col style="width: 8%" />
+              <col style="width: 20%" />
+            </colgroup>
+            <tr>
+              <td class="lbl">CPF:</td>
+              <td class="{{ vc }}">
+                {% if show_data %}{{ paciente.cpf }}{% endif %}
+              </td>
+              <td class="lbl">Dt.Nasc.:</td>
+              <td class="{{ vc }}">
+                {% if show_data %}{{ paciente.data_nascimento_br }}{% endif %}
+              </td>
+              <td class="lbl">Idade:</td>
+              <td class="{{ vc }}" style="text-align: center">
+                {% if show_data and paciente.idade is not none %}{{
+                paciente.idade }}{% endif %}
+              </td>
+              <td class="lbl">Sexo:</td>
+              <td style="padding: 1px 3px; vertical-align: bottom">
+                <div class="sex-box">
+                  <span class="sex-item"
+                    ><span
+                      class="sex-cb {{ 'on' if (show_data and paciente.sexo == 'M') else '' }}"
+                      >{% if show_data and paciente.sexo == 'M' %}✓{% endif
+                      %}</span
+                    >M</span
+                  ><span class="sex-item"
+                    ><span
+                      class="sex-cb {{ 'on' if (show_data and paciente.sexo == 'F') else '' }}"
+                      >{% if show_data and paciente.sexo == 'F' %}✓{% endif
+                      %}</span
+                    >F</span
+                  >
+                </div>
+              </td>
+              <td class="lbl">Telefone:</td>
+              <td class="{{ vc }}">
+                {% if show_data %}{{ paciente.telefone }}{% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td class="lbl">Função:</td>
+              <td class="{{ vc }}" colspan="4">
+                {% if show_data %}{{ funcao_do_paciente }}{% endif %}
+              </td>
+              <td class="lbl">Setor:</td>
+              <td class="{{ vc }}" colspan="4">
+                {% if show_data %}{{ setor | default('') }}{% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td class="lbl">E-mail:</td>
+              <td class="{{ vc }}" colspan="9">
+                {% if show_data %}{{ paciente.email | default('') }}{% endif %}
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    {# ── IV Anamnese ── #}
+    <div class="sec">
+      <div class="sec-t">
+        IV — Anamnese Ocupacional — Marque X em Sim ou Não
+      </div>
+      <div class="sec-b">
+        <div class="q2col">
+          {# ESQUERDA #}
+          <div>
+            <div class="grp-t">A — Condições Gerais de Saúde</div>
+            <table class="qt">
+              {{ th_sn() }}
+              <tbody>
+                {% for p in anamnese.condicoes_gerais %}{{ qr(loop.index, p)
+                }}{% endfor %}
+              </tbody>
+            </table>
+
+            <div class="grp-t">C — Histórico Ocupacional</div>
+            <table class="qt">
+              {{ th_sn() }}
+              <tbody>
+                {{ qr(1, anamnese.historico_ocupacional[1]) }} {{ qr(2,
+                anamnese.historico_ocupacional[2]) }} {{ qr(3,
+                anamnese.historico_ocupacional[3]) }} {{ qr(4,
+                anamnese.historico_ocupacional[4]) }} {{ qr(5,
+                anamnese.historico_ocupacional[6]) }}
+              </tbody>
+            </table>
+            {{ qw(6, anamnese.historico_ocupacional[0]) }} {{ qw(7,
+            anamnese.historico_ocupacional[5]) }}
+
+            <div class="grp-t">D — Hábitos e Estilo de Vida</div>
+            {{ qw(1, anamnese.habitos[0]) }} {{ qw(2, anamnese.habitos[1]) }}
+            <table class="qt">
+              {{ th_sn() }}
+              <tbody>
+                {{ qr(3, anamnese.habitos[2]) }} {{ qr(4, anamnese.habitos[3])
+                }}
+              </tbody>
+            </table>
+
+            <div class="grp-t">F — Antecedentes Familiares</div>
+            <table class="qt">
+              {{ th_sn() }}
+              <tbody>
+                {% for p in anamnese.antecedentes_familiares %}{{ qr(loop.index,
+                p) }}{% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          {# DIREITA — Antecedentes Patológicos #}
+          <div>
+            <div class="grp-t">B — Antecedentes Patológicos</div>
+            {{ qw(1, anamnese.antecedentes[0]) }} {{ qw(2,
+            anamnese.antecedentes[1]) }} {{ qw(3, anamnese.antecedentes[2]) }}
+            {{ qw(4, anamnese.antecedentes[3]) }}
+            <table class="qt">
+              {{ th_sn() }}
+              <tbody>
+                {% set simples =
+                [4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23] %} {%
+                set ns = namespace(n=5) %} {% for i in simples %}{% if i <
+                anamnese.antecedentes | length %}{{ qr(ns.n,
+                anamnese.antecedentes[i]) }}{% set ns.n = ns.n + 1 %}{% endif
+                %}{% endfor %}
+              </tbody>
+            </table>
+            {# Pergunta 25 com quebra de linha forçada #} {{ qw(25,
+            anamnese.antecedentes[24], true) }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ── Seção Feminina ── #} {% set mostrar_e = is_blank or (paciente.sexo ==
+    'F') %} {% if mostrar_e and anamnese.perguntas_femininas %}
+    <div class="fem-sec">
+      <div class="fem-hdr">
+        <span class="fi">♀</span><span>E — Saúde Feminina</span
+        ><span class="fn"
+          >{% if is_blank %}⚠ SOMENTE sexo feminino — homens deixar em branco{%
+          else %}(exclusiva para trabalhadoras){% endif %}</span
+        >
+      </div>
+      {{ qw(1, anamnese.perguntas_femininas[0]) }} {{ qw(2,
+      anamnese.perguntas_femininas[1]) }} {{ qw(3,
+      anamnese.perguntas_femininas[2]) }} {{ qw(4,
+      anamnese.perguntas_femininas[3]) }} {{ qw(5,
+      anamnese.perguntas_femininas[4]) }}
+    </div>
+    {% endif %}
+
+    <div
+      style="
+        text-align: right;
+        font-size: 10pt;
+        font-weight: 800;
+        color: var(--n5);
+        margin-top: 15px;
+      "
+    >
+      ➔ VIRE A PÁGINA PARA CONTINUAR
+    </div>
+
+    <div class="pg-brk"></div>
+
+    {# ═══════════ PÁGINA 2 — VERSO ═══════════ #}
+    <div class="p2w">
+      <div class="p2c">
+        <div class="hdr2">
+          {% if logo_path %}<img src="{{ logo_path }}" alt="CMI" />{% endif %}
+          <div class="hdr2-t">
+            {{ clinica.nome | default('Centro Médico Integrado') }} — Verso
+          </div>
+          <div class="hdr2-r">
+            {% if show_data %}<strong>{{ paciente.nome }}</strong>{% endif %}{%
+            if aso_id %}Nº {{ aso_id }}{% endif %}
+          </div>
+        </div>
+
+        <div>
+          <span class="zl zl-p">&#9998; Preenchimento do Trabalhador</span>
+        </div>
+
+        <div class="sec">
+          <div class="sec-t">Observações / Informações Adicionais</div>
+          <div class="sec-b">
+            <div class="fb fb-m">
+              {% if show_data and observacoes_trabalhador is defined %}{{
+              observacoes_trabalhador | default('') }}{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="sec avoid">
+          <div class="sec-t">V — Declaração do Candidato</div>
+          <div class="sec-b">
+            <div class="decl">
+              Declaro que as informações prestadas são verdadeiras e de minha
+              inteira responsabilidade. Estou ciente de que a omissão ou
+              inveracidade poderá acarretar responsabilização nos termos da
+              legislação vigente. Autorizo o(a) médico(a) examinador(a) a
+              utilizar estes dados exclusivamente para avaliação de saúde
+              ocupacional conforme NR-7.
+            </div>
+            <div
+              style="
+                margin-top: 8px;
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-end;
+              "
+            >
+              <div style="font-size: 8.5pt">
+                <strong>Local:</strong
+                ><span
+                  style="
+                    border-bottom: 1px solid var(--n3);
+                    display: inline-block;
+                    width: 250px;
+                  "
+                  >&nbsp;</span
+                >&nbsp;<strong>Data:</strong
+                ><span
+                  style="
+                    border-bottom: 1px solid var(--n3);
+                    display: inline-block;
+                    width: 80px;
+                  "
+                  >&nbsp;</span
+                >
+              </div>
+              <div style="text-align: center; min-width: 250px">
+                <div
+                  style="
+                    border-top: 1.5px solid var(--dk);
+                    margin-top: 10mm;
+                    padding-top: 1px;
+                  "
+                >
+                  <div style="font-size: 8.5pt; font-weight: 700; color: #000">
+                    {% if show_data %}{{ paciente.nome }}{% endif %}
+                  </div>
+                  <div style="font-size: 7pt; color: #999">
+                    Assinatura do(a) Trabalhador(a)
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="zd" />
+        <div>
+          <span class="zl zl-m">&#9764; Exame Médico — Para Uso do Médico</span>
+        </div>
+
+        <div class="mz">
+          <div class="sec">
+            <div class="sec-t">VI — Exame Clínico Ocupacional</div>
+            <div class="sec-b">
+              {# Sinais Vitais — layout espaçado #}
+              <table class="vg">
+                <tr>
+                  <td class="lbl">PA:</td>
+                  <td class="{{ vc }}">
+                    {% if show_data %}{{ exame_clinico.pa | default('') }}{%
+                    endif %}
+                  </td>
+                  <td class="unit">mmHg</td>
+                  <td class="lbl">FC:</td>
+                  <td class="{{ vc }}">
+                    {% if show_data %}{{ exame_clinico.fc | default('') }}{%
+                    endif %}
+                  </td>
+                  <td class="unit">bpm</td>
+                  <td class="lbl">Saturação:</td>
+                  <td class="{{ vc }}">
+                    {% if show_data %}{{ exame_clinico.saturacao | default('')
+                    }}{% endif %}
+                  </td>
+                  <td class="unit">%</td>
+                </tr>
+                <tr>
+                  <td class="lbl">Peso:</td>
+                  <td class="{{ vc }}">
+                    {% if show_data %}{{ exame_clinico.peso | default('') }}{%
+                    endif %}
+                  </td>
+                  <td class="unit">kg</td>
+                  <td class="lbl">Altura:</td>
+                  <td class="{{ vc }}">
+                    {% if show_data %}{{ exame_clinico.altura | default('') }}{%
+                    endif %}
+                  </td>
+                  <td class="unit">m</td>
+                  <td class="lbl">IMC:</td>
+                  <td class="{{ vc }}">
+                    {% if show_data %}{{ exame_clinico.imc | default('') }}{%
+                    endif %}
+                  </td>
+                  <td class="unit"></td>
+                </tr>
+              </table>
+
+              {# Acuidade Visual #}
+              <div
+                style="
+                  padding: 2px 3px;
+                  font-size: 9pt;
+                  border-bottom: 1px solid var(--n2);
+                  margin-bottom: 1px;
+                "
+              >
+                <strong style="color: var(--n7); font-size: 8pt"
+                  >Acuidade Visual:</strong
+                >
+                OD: s/c
+                <span
+                  style="
+                    border-bottom: 1px solid var(--n3);
+                    display: inline-block;
+                    width: 28px;
+                  "
+                  >{% if show_data %}{{ exame_clinico.av_od_sc | default('')
+                  }}{% endif %}</span
+                >
+                c/c
+                <span
+                  style="
+                    border-bottom: 1px solid var(--n3);
+                    display: inline-block;
+                    width: 28px;
+                  "
+                  >{% if show_data %}{{ exame_clinico.av_od_cc | default('')
+                  }}{% endif %}</span
+                >
+                &nbsp;&nbsp;OE: s/c
+                <span
+                  style="
+                    border-bottom: 1px solid var(--n3);
+                    display: inline-block;
+                    width: 28px;
+                  "
+                  >{% if show_data %}{{ exame_clinico.av_oe_sc | default('')
+                  }}{% endif %}</span
+                >
+                c/c
+                <span
+                  style="
+                    border-bottom: 1px solid var(--n3);
+                    display: inline-block;
+                    width: 28px;
+                  "
+                  >{% if show_data %}{{ exame_clinico.av_oe_cc | default('')
+                  }}{% endif %}</span
+                >
+              </div>
+
+              {# Exame Físico por Região — linhas pautadas para escrita #}
+              <table class="ef">
+                <tr>
+                  <td class="ef-lbl">Q.P.:</td>
+                  <td class="ef-v" colspan="3">
+                    {% if show_data %}{{ exame_clinico.queixa_principal |
+                    default('') }}{% endif %}
+                  </td>
+                </tr>
+                <tr>
+                  <td class="ef-lbl">Cabeça:</td>
+                  <td class="ef-v">
+                    {% if show_data %}{{ exame_clinico.cabeca | default('') }}{%
+                    endif %}
+                  </td>
+                  <td class="ef-lbl">Pescoço:</td>
+                  <td class="ef-v">
+                    {% if show_data %}{{ exame_clinico.pescoco | default('')
+                    }}{% endif %}
+                  </td>
+                </tr>
+                <tr>
+                  <td class="ef-lbl">Tórax:</td>
+                  <td class="ef-v2" colspan="3">
+                    {% if show_data %}{{ exame_clinico.torax | default('') }}{%
+                    endif %}
+                  </td>
+                </tr>
+                <tr>
+                  <td class="ef-lbl">Abdômen:</td>
+                  <td class="ef-v" colspan="3">
+                    {% if show_data %}{{ exame_clinico.abdomen | default('')
+                    }}{% endif %}
+                  </td>
+                </tr>
+                <tr>
+                  <td class="ef-lbl">Col. Vert.:</td>
+                  <td class="ef-v2" colspan="3">
+                    {% if show_data %}{{ exame_clinico.coluna | default('') }}{%
+                    endif %}
+                  </td>
+                </tr>
+                <tr>
+                  <td class="ef-lbl">M. Sup.:</td>
+                  <td class="ef-v" colspan="3">
+                    {% if show_data %}{{ exame_clinico.membros_superiores |
+                    default('') }}{% endif %}
+                  </td>
+                </tr>
+                <tr>
+                  <td class="ef-lbl">M. Inf.:</td>
+                  <td class="ef-v" colspan="3">
+                    {% if show_data %}{{ exame_clinico.membros_inferiores |
+                    default('') }}{% endif %}
+                  </td>
+                </tr>
+              </table>
+
+              {# Observações do Médico #}
+              <div class="obs-section">
+                <div class="obs-label">OBSERVAÇÕES:</div>
+                <div class="fb" style="min-height: 40mm">
+                  {% if show_data %}{{ exame_clinico.impressao | default('')
+                  }}{% if observacoes_medicas %} {{ observacoes_medicas }}{%
+                  endif %}{% endif %}
+                </div>
+              </div>
+
+              {% if exames_solicitados and exames_solicitados.exames %}
+              <div class="obs-section">
+                <div class="obs-label">
+                  EXAMES COMPLEMENTARES (NR-7 §7.5.19.1-IV):
+                </div>
+                <div class="fb fb-s">
+                  {% for exame in exames_solicitados.exames %}▸ {{ exame }}{% if
+                  not loop.last %}; {% endif %}{% endfor %}
+                </div>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          {# ── VII + VIII ── #}
+          <table class="s2" style="margin-bottom: 0">
+            <tr>
+              <td class="cl" style="width: 55%">
+                <div class="sec avoid">
+                  <div class="sec-t" style="background: var(--md) !important">
+                    VII — Riscos Ocupacionais (PGR/PCMSO)
+                  </div>
+                  <div class="sec-b">
+                    {% set riscos_list = [] %}{% for tipo, desc in
+                    riscos.items() %}{% if desc %}{% if riscos_list.append(1)
+                    %}{% endif %}{% endif %}{% endfor %} {% if riscos_list %}
+                    <table class="fg" style="font-size: 7.5pt">
+                      {% set lmap =
+                      {'fisico':'Físico','quimico':'Químico','biologico':'Biológico','ergonomico':'Ergonômico','acidente':'Acidente'}
+                      %}{% for tipo, desc in riscos.items() %}{% if desc %}
+                      <tr>
+                        <td class="lbl">
+                          {{ lmap.get(tipo, tipo|capitalize) }}
+                        </td>
+                        <td style="border-bottom: 0.5px solid var(--n2)">
+                          {{ desc }}
+                        </td>
+                      </tr>
+                      {% endif %}{% endfor %}
+                    </table>
+                    {% else %}
+                    <p class="mut" style="padding: 2px 4px; font-size: 7pt">
+                      Sem riscos ocupacionais específicos identificados.
+                    </p>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+              <td class="cr" style="width: 45%">
+                <div class="sec avoid">
+                  <div class="sec-t" style="background: var(--md) !important">
+                    VIII — Conclusão Médica
+                  </div>
+                  <div class="sec-b">
+                    {% if conclusao.status %}{% set sl = conclusao.status |
+                    lower %}{% if 'inapto' in sl and 'apto' not in sl %}{% set
+                    cc = 'no' %}{% elif 'restr' in sl %}{% set cc = 'wn' %}{%
+                    else %}{% set cc = 'ok' %}{% endif %}
+                    <div class="conc {{ cc }}">
+                      <div class="conc-lbl">
+                        Resultado para a Função Proposta
+                      </div>
+                      <div class="conc-v">{{ conclusao.status }}</div>
+                    </div>
+                    {% if restricoes %}
+                    <div class="rest">
+                      <strong>Restrições:</strong> {{ restricoes }}
+                    </div>
+                    {% endif %}{% else %}
+                    <div class="conc">
+                      <div class="conc-lbl">
+                        Resultado para a Função Proposta
+                      </div>
+                      <div class="conc-line" style="margin-top: 6px">
+                        <span><span class="conc-cb"></span> APTO</span>
+                        <span><span class="conc-cb"></span> INAPTO</span>
+                        <span
+                          ><span class="conc-cb"></span> APTO COM
+                          RESTRIÇÕES</span
+                        >
+                      </div>
+                      <div style="margin-top: 6px; font-size: 8pt">
+                        Restrições:
+                        <span
+                          style="
+                            border-bottom: 1px solid var(--n3);
+                            display: inline-block;
+                            min-width: 200px;
+                          "
+                        >
+                          &nbsp;
+                        </span>
+                      </div>
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="p2b">
+        <div class="footer-row">
+          <div class="footer-left">
+            {{ data_geracao }} às {{ hora_geracao }} — {{ cidade_uf }}
+          </div>
+          <!-- DIREITA -->
+          <div class="sigs" style="justify-content: flex-end">
+            <div class="sig" style="max-width: 300px">
+              <div class="sig-ln"></div>
+              <div class="sig-nm">
+                {% if show_data and medico.nome != '—' %} {{ medico.nome }} {%
+                endif %}
+              </div>
+              <div class="sig-sb">
+                {% if show_data and medico.crm and medico.crm != '—' %} CRM {{
+                medico.crm }} {% if medico.especialidade %} — {{
+                medico.especialidade }}{% endif %} {% endif %}
+              </div>
+              <div class="sig-sb">Médico(a) Examinador(a) / Carimbo</div>
+            </div>
+          </div>
+        </div>
+        <div class="legal">
+          Documento conforme NR-7 (Portaria MTP nº 567/2022), item 7.5.19.1. O
+          ASO deve ser disponibilizado ao empregado em meio físico quando
+          solicitado (§7.5.19). Prontuário mantido por 20 anos após desligamento
+          (§7.6.1.1). Anamnese constitui ato médico (Res. CFM 2.056/2013).
+          Sigilo médico (art. 73, CEM). PcD conforme Lei 13.146/2015.
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

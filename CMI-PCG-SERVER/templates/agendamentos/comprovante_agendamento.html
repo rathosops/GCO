@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Agendamento #{{ agendamento.numero_de_protocolo or agendamento.id }}</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 15mm;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10pt;
+      color: #333;
+      line-height: 1.5;
+      background: #fff;
+    }
+
+    /* ========== HEADER ========== */
+    .header {
+      display: flex;
+      align-items: center;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #0d6efd;
+    }
+
+    .logo-area {
+      width: 70px;
+      height: 70px;
+      flex-shrink: 0;
+    }
+
+    .logo-area img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .logo-placeholder {
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: bold;
+      font-size: 14pt;
+    }
+
+    .header-content {
+      flex: 1;
+      text-align: center;
+      padding: 0 15px;
+    }
+
+    .header-content h1 {
+      font-size: 16pt;
+      font-weight: 700;
+      color: #0d6efd;
+      margin-bottom: 3px;
+    }
+
+    .header-content .subtitle {
+      font-size: 10pt;
+      color: #495057;
+    }
+
+    .header-meta {
+      text-align: right;
+      font-size: 8pt;
+      color: #6c757d;
+      flex-shrink: 0;
+    }
+
+    .header-meta .date {
+      font-weight: 600;
+      color: #495057;
+      font-size: 9pt;
+    }
+
+    /* ========== PROTOCOLO ========== */
+    .protocol-bar {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      padding: 10px 15px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .protocol-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .protocol-label {
+      font-size: 7pt;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .protocol-value {
+      font-size: 12pt;
+      font-weight: 700;
+      color: #0d6efd;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 8pt;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-agendado { background: #cfe2ff; color: #084298; }
+    .status-confirmado { background: #d1e7dd; color: #0f5132; }
+    .status-realizado { background: #d1e7dd; color: #0f5132; }
+    .status-cancelado { background: #f8d7da; color: #842029; }
+    .status-faltou { background: #fff3cd; color: #664d03; }
+
+    /* ========== DESTAQUE DATA/HORA ========== */
+    .appointment-box {
+      background: linear-gradient(135deg, #cfe2ff 0%, #b6d4fe 100%);
+      border: 1px solid #9ec5fe;
+      border-radius: 10px;
+      padding: 20px 30px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .datetime-row {
+      display: flex;
+      justify-content: center;
+      gap: 50px;
+      margin-bottom: 12px;
+    }
+
+    .datetime-item {
+      text-align: center;
+    }
+
+    .datetime-label {
+      font-size: 8pt;
+      color: #084298;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .datetime-value {
+      font-size: 22pt;
+      font-weight: 700;
+      color: #052c65;
+    }
+
+    .datetime-extra {
+      font-size: 9pt;
+      color: #084298;
+      margin-top: 2px;
+    }
+
+    .procedure-name {
+      font-size: 11pt;
+      font-weight: 600;
+      color: #084298;
+      padding-top: 12px;
+      border-top: 1px solid #9ec5fe;
+    }
+
+    /* ========== SEÇÕES ========== */
+    .section {
+      margin-bottom: 18px;
+      page-break-inside: avoid;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .section-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10pt;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .section-icon.green { background: #d1e7dd; color: #198754; }
+    .section-icon.orange { background: #ffe5d0; color: #fd7e14; }
+    .section-icon.blue { background: #cfe2ff; color: #0d6efd; }
+
+    .section-title {
+      font-size: 11pt;
+      font-weight: 600;
+      color: #212529;
+    }
+
+    /* ========== INFO GRID ========== */
+    .info-card {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 6px;
+      padding: 12px 15px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .info-item.full {
+      grid-column: span 2;
+    }
+
+    .info-label {
+      font-size: 7pt;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.2px;
+      margin-bottom: 2px;
+    }
+
+    .info-value {
+      font-size: 10pt;
+      color: #212529;
+      font-weight: 500;
+    }
+
+    .info-value.large {
+      font-size: 12pt;
+      font-weight: 600;
+    }
+
+    /* ========== OBSERVAÇÕES ========== */
+    .obs-box {
+      background: #fff8e1;
+      border: 1px solid #ffe082;
+      border-left: 4px solid #ffa000;
+      border-radius: 0 6px 6px 0;
+      padding: 10px 14px;
+    }
+
+    .obs-text {
+      font-size: 9pt;
+      color: #5d4037;
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+
+    /* ========== INSTRUÇÕES ========== */
+    .instructions-box {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 20px;
+    }
+
+    .instructions-title {
+      font-size: 10pt;
+      font-weight: 600;
+      color: #212529;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .instructions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .instruction-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .instruction-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9pt;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .instruction-icon.doc { background: #cfe2ff; color: #0d6efd; }
+    .instruction-icon.med { background: #d1e7dd; color: #198754; }
+    .instruction-icon.exam { background: #e2d9f3; color: #6f42c1; }
+    .instruction-icon.conv { background: #ffe5d0; color: #fd7e14; }
+    .instruction-icon.hist { background: #d2f4ea; color: #0d9488; }
+    .instruction-icon.time { background: #f8d7da; color: #dc3545; }
+
+    .instruction-content {
+      flex: 1;
+    }
+
+    .instruction-title {
+      font-size: 9pt;
+      font-weight: 600;
+      color: #212529;
+      margin-bottom: 2px;
+    }
+
+    .instruction-desc {
+      font-size: 8pt;
+      color: #6c757d;
+      line-height: 1.4;
+    }
+
+    /* ========== FOOTER ========== */
+    .footer {
+      margin-top: 25px;
+      padding-top: 15px;
+      border-top: 1px solid #dee2e6;
+      text-align: center;
+    }
+
+    .footer-text {
+      font-size: 8pt;
+      color: #6c757d;
+      line-height: 1.4;
+    }
+
+    .footer-contact {
+      margin-top: 8px;
+      font-size: 9pt;
+      color: #495057;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo-area">
+      {% if logo_path %}
+        <img src="{{ logo_path }}" alt="Logo" />
+      {% else %}
+        <div class="logo-placeholder">CMI</div>
+      {% endif %}
+    </div>
+    <div class="header-content">
+      <h1>{{ clinica_nome or "Centro Médico Integrado" }}</h1>
+      <div class="subtitle">Comprovante de Agendamento</div>
+    </div>
+    <div class="header-meta">
+      <div>Emitido em:</div>
+      <div class="date">{{ data_geracao }}</div>
+    </div>
+  </header>
+
+  <!-- PROTOCOLO -->
+  {% if agendamento.numero_de_protocolo or agendamento.id %}
+  <div class="protocol-bar">
+    {% if agendamento.numero_de_protocolo %}
+    <div class="protocol-item">
+      <span class="protocol-label">Protocolo</span>
+      <span class="protocol-value">#{{ agendamento.numero_de_protocolo }}</span>
+    </div>
+    {% endif %}
+    <div class="protocol-item">
+      <span class="protocol-label">Código</span>
+      <span class="protocol-value">#{{ agendamento.id }}</span>
+    </div>
+    <div class="protocol-item">
+      <span class="protocol-label">Status</span>
+      <span class="status-badge status-{{ agendamento.status | lower }}">{{ agendamento.status }}</span>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- DESTAQUE DATA/HORA -->
+  <div class="appointment-box">
+    <div class="datetime-row">
+      <div class="datetime-item">
+        <div class="datetime-label">Data</div>
+        <div class="datetime-value">{{ agendamento.dia_formatado }}</div>
+        <div class="datetime-extra">{{ agendamento.dia_semana }}</div>
+      </div>
+      <div class="datetime-item">
+        <div class="datetime-label">Horário</div>
+        <div class="datetime-value">{{ agendamento.hora_formatada }}</div>
+      </div>
+    </div>
+    {% if agendamento.procedimento %}
+    <div class="procedure-name">{{ agendamento.procedimento }}</div>
+    {% endif %}
+  </div>
+
+  <!-- DADOS DO PACIENTE -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-icon green">P</div>
+      <h2 class="section-title">Dados do Paciente</h2>
+    </div>
+    <div class="info-card">
+      <div class="info-grid">
+        <div class="info-item full">
+          <span class="info-label">Nome Completo</span>
+          <span class="info-value large">{{ agendamento.nome_paciente or "Não informado" }}</span>
+        </div>
+        {% if agendamento.cpf_paciente %}
+        <div class="info-item">
+          <span class="info-label">CPF</span>
+          <span class="info-value">{{ agendamento.cpf_formatado }}</span>
+        </div>
+        {% endif %}
+        {% if agendamento.numero_de_contato %}
+        <div class="info-item">
+          <span class="info-label">Telefone</span>
+          <span class="info-value">{{ agendamento.telefone_formatado }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <!-- OBSERVAÇÕES -->
+  {% if agendamento.observacoes %}
+  <section class="section">
+    <div class="section-header">
+      <div class="section-icon orange">O</div>
+      <h2 class="section-title">Observações</h2>
+    </div>
+    <div class="obs-box">
+      <p class="obs-text">{{ agendamento.observacoes }}</p>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- INSTRUÇÕES -->
+  <div class="instructions-box">
+    <h3 class="instructions-title">O que trazer para a consulta</h3>
+    <div class="instructions-grid">
+      <div class="instruction-item">
+        <div class="instruction-icon doc">D</div>
+        <div class="instruction-content">
+          <div class="instruction-title">Documento com foto</div>
+          <div class="instruction-desc">RG, CNH ou outro documento oficial</div>
+        </div>
+      </div>
+      <div class="instruction-item">
+        <div class="instruction-icon med">M</div>
+        <div class="instruction-content">
+          <div class="instruction-title">Lista de medicamentos</div>
+          <div class="instruction-desc">Todos os remédios que toma atualmente, com dosagens</div>
+        </div>
+      </div>
+      <div class="instruction-item">
+        <div class="instruction-icon exam">E</div>
+        <div class="instruction-content">
+          <div class="instruction-title">Exames anteriores</div>
+          <div class="instruction-desc">Laudos, resultados de exames de sangue, imagem, etc.</div>
+        </div>
+      </div>
+      <div class="instruction-item">
+        <div class="instruction-icon conv">C</div>
+        <div class="instruction-content">
+          <div class="instruction-title">Cartão do convênio</div>
+          <div class="instruction-desc">Se aplicável, traga o cartão atualizado</div>
+        </div>
+      </div>
+      <div class="instruction-item">
+        <div class="instruction-icon hist">H</div>
+        <div class="instruction-content">
+          <div class="instruction-title">Histórico médico</div>
+          <div class="instruction-desc">Relatórios de internações, cirurgias ou tratamentos</div>
+        </div>
+      </div>
+      <div class="instruction-item">
+        <div class="instruction-icon time">!</div>
+        <div class="instruction-content">
+          <div class="instruction-title">Chegue com antecedência</div>
+          <div class="instruction-desc">15 minutos antes do horário agendado</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p class="footer-text">
+      Em caso de impossibilidade de comparecimento, entre em contato para reagendamento.
+    </p>
+    {% if clinica_telefone or clinica_email %}
+    <p class="footer-contact">
+      {% if clinica_telefone %}Tel: {{ clinica_telefone }}{% endif %}
+      {% if clinica_telefone and clinica_email %} | {% endif %}
+      {% if clinica_email %}{{ clinica_email }}{% endif %}
+    </p>
+    {% endif %}
+  </footer>
+
+</body>
+</html>

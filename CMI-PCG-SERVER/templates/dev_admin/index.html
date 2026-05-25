@@ -1,0 +1,1796 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>CMI - Dev Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='dev_admin.css') }}"
+  />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>CMI Server Dev Admin</h1>
+      <span class="small muted">Painel de desenvolvimento – não exponha em produção</span>
+    </div>
+    <div class="flex">
+      <button
+        class="btn secondary btn-icon"
+        id="btn-theme-toggle"
+        type="button"
+        title="Alternar tema"
+      >
+        ☾
+      </button>
+      <div id="env-badge" class="env-badge">ENV: …</div>
+      <div id="health-summary" class="small muted"></div>
+      <div id="login-status" class="small muted">Não autenticado</div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <nav class="sidebar">
+      <div class="nav-section">
+        <h2>Geral</h2>
+        <button class="nav-btn active" data-section="dashboard">Visão Geral</button>
+      </div>
+
+      <div class="nav-section">
+        <h2>Autenticação</h2>
+        <button class="nav-btn" data-section="auth">Login & Tokens</button>
+      </div>
+
+      <div class="nav-section">
+        <h2>Banco & Migrações</h2>
+        <button class="nav-btn" data-section="migrations">Status de Migrações</button>
+        <button class="nav-btn" data-section="db">Explorador de Tabelas</button>
+      </div>
+
+      <div class="nav-section">
+        <h2>Código</h2>
+        <button class="nav-btn" data-section="git">Git / Repositório</button>
+      </div>
+
+      <div class="nav-section">
+        <h2>Infra</h2>
+        <button class="nav-btn" data-section="docker">Docker / Containers</button>
+        <button class="nav-btn" data-section="env">ENV & Config</button>
+      </div>
+
+      <div class="nav-section">
+        <h2>Logs & Terminal</h2>
+        <button class="nav-btn" data-section="logs">Visualizar logs</button>
+        <button class="nav-btn" data-section="terminal">Shell rápido</button>
+      </div>
+
+      <div class="nav-section">
+        <h2>Usuários</h2>
+        <button class="nav-btn" data-section="users">Criar usuário de teste</button>
+      </div>
+    </nav>
+
+    <div class="content">
+      <!-- ===================================== -->
+      <!-- DASHBOARD -->
+      <!-- ===================================== -->
+      <section id="section-dashboard">
+        <div class="card">
+          <div class="card-header">
+            <h3>Resumo do Sistema</h3>
+            <button class="btn secondary" id="btn-refresh-health">Recarregar</button>
+          </div>
+          <div id="dashboard-metrics" class="metrics-grid mt-2">
+            <!-- preenchido via JS -->
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Resumo de Autenticação</h3>
+            <button class="btn secondary" id="btn-dashboard-auth-summary">Atualizar resumo</button>
+          </div>
+          <div id="dashboard-auth" class="metrics-grid mt-2"></div>
+        </div>
+      </section>
+
+      <!-- ===================================== -->
+      <!-- AUTH -->
+      <!-- ===================================== -->
+      <section id="section-auth" style="display: none;">
+        <div class="card">
+          <h3>Login (API /auth/login)</h3>
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" type="email" value="admin@cmi.com.br" />
+          </div>
+          <div class="field">
+            <label for="senha">Senha</label>
+            <input id="senha" type="password" value="Admin@123!" />
+          </div>
+          <button class="btn" id="btn-login">Login</button>
+          <div class="mt-2 small" id="auth-message"></div>
+        </div>
+
+        <div class="card">
+          <h3>Tokens</h3>
+          <div class="small">Access token:</div>
+          <pre id="access-token-display" class="mt-1 muted codeblock">—</pre>
+          <div class="small mt-2">Refresh token:</div>
+          <pre id="refresh-token-display" class="mt-1 muted codeblock">—</pre>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Resumo de Autenticação</h3>
+            <button class="btn secondary" id="btn-auth-summary-refresh">Atualizar</button>
+          </div>
+          <div id="auth-summary-metrics" class="metrics-grid mt-2"></div>
+          <div class="mt-2 small" id="auth-summary-msg"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Últimos logins falhos (24h)</h3>
+            <span class="small muted">Fonte: audit_logs</span>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Quando</th>
+                  <th>Email</th>
+                  <th>IP</th>
+                  <th>Motivo</th>
+                </tr>
+              </thead>
+              <tbody id="auth-failed-logins-body">
+                <tr><td colspan="4" class="muted small">Nenhum dado</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Sessões ativas por usuário</h3>
+          </div>
+          <div class="flex mt-1">
+            <div class="field" style="max-width: 200px;">
+              <label for="auth-sessions-staff-id">Staff ID</label>
+              <input id="auth-sessions-staff-id" type="number" min="1" />
+            </div>
+            <button class="btn" id="btn-auth-load-sessions">Carregar sessões</button>
+          </div>
+          <div class="small mt-1" id="auth-sessions-meta"></div>
+          <div class="table-wrapper mt-2">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>IP</th>
+                  <th>Device</th>
+                  <th>Created</th>
+                  <th>Último uso</th>
+                  <th>Expira</th>
+                </tr>
+              </thead>
+              <tbody id="auth-sessions-body">
+                <tr><td colspan="6" class="muted small">Nenhum dado</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================== -->
+      <!-- MIGRAÇÕES -->
+      <!-- ===================================== -->
+      <section id="section-migrations" style="display: none;">
+        <div class="card">
+          <div class="card-header">
+            <h3>Status das migrações</h3>
+            <button class="btn secondary" id="btn-refresh-migrations">Atualizar</button>
+          </div>
+          <div class="mt-2">
+            <div class="field-inline">
+              <span class="small">Current:</span>
+              <span id="mig-current" class="pill">—</span>
+            </div>
+            <div class="field-inline">
+              <span class="small">Head:</span>
+              <span id="mig-head" class="pill">—</span>
+            </div>
+            <div class="field-inline">
+              <span class="small">Status:</span>
+              <span id="mig-status" class="small muted">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Executar upgrade</h3>
+          <div class="small">Deixe em branco para “head”. Requer usuário master.</div>
+          <div class="field mt-1">
+            <label for="mig-upgrade-target">Target (ex: head, &lt;hash&gt;)</label>
+            <input id="mig-upgrade-target" type="text" placeholder="head" />
+          </div>
+          <button class="btn" id="btn-mig-upgrade">Upgrade</button>
+          <div class="mt-2 small" id="mig-upgrade-msg"></div>
+        </div>
+
+        <div class="card">
+          <h3>Executar downgrade</h3>
+          <div class="small">
+            ATENÇÃO: operação destrutiva. Ex: -1 ou hash anterior. Requer usuário master.
+          </div>
+          <div class="field mt-1">
+            <label for="mig-downgrade-target">Target</label>
+            <input id="mig-downgrade-target" type="text" placeholder="-1" />
+          </div>
+          <button class="btn danger" id="btn-mig-downgrade">Downgrade</button>
+          <div class="mt-2 small" id="mig-downgrade-msg"></div>
+        </div>
+      </section>
+
+      <!-- ===================================== -->
+      <!-- DB EXPLORER -->
+      <!-- ===================================== -->
+      <section id="section-db" style="display: none;">
+        <div class="card">
+          <div class="card-header">
+            <h3>Schema do Banco</h3>
+            <button class="btn secondary" id="btn-db-load-schema">Carregar schema</button>
+          </div>
+          <div class="flex mt-2">
+            <div class="field" style="min-width: 220px;">
+              <label for="db-tables-select">Tabela</label>
+              <select id="db-tables-select">
+                <option value="">Selecione uma tabela...</option>
+              </select>
+            </div>
+            <div class="small muted">
+              Visualização somente leitura baseada em introspecção do SQLAlchemy.
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Detalhes da tabela</h3>
+          <div id="db-table-meta" class="small muted">Nenhuma tabela selecionada.</div>
+
+          <h4 class="mt-2 small-title">Colunas</h4>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Tipo</th>
+                  <th>PK</th>
+                  <th>Nullable</th>
+                </tr>
+              </thead>
+              <tbody id="db-columns-body">
+                <tr><td colspan="4" class="muted small">Nenhuma tabela selecionada.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4 class="mt-3 small-title">Sample (até 50 linhas)</h4>
+          <div class="table-wrapper">
+            <table>
+              <thead id="db-sample-head"></thead>
+              <tbody id="db-sample-body">
+                <tr><td class="muted small">Nenhum dado</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================== -->
+      <!-- GIT / REPOSITÓRIO -->
+      <!-- ===================================== -->
+      <section id="section-git" style="display: none;">
+        <div class="card">
+          <div class="card-header">
+            <h3>Status do repositório Git</h3>
+            <button class="btn secondary" id="btn-git-refresh">Atualizar</button>
+          </div>
+          <div id="git-metrics" class="metrics-grid mt-2">
+            <!-- preenchido via JS -->
+          </div>
+          <div class="mt-2 small" id="git-meta"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Arquivos modificados</h3>
+            <span class="small muted">Baseado em <code>git status --porcelain</code></span>
+          </div>
+          <div class="table-wrapper mt-2">
+            <table>
+              <thead>
+                <tr>
+                  <th>Arquivo</th>
+                  <th>Status</th>
+                  <th>Staged?</th>
+                </tr>
+              </thead>
+              <tbody id="git-files-body">
+                <tr><td colspan="3" class="muted small">Nenhum dado.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================== -->
+      <!-- DOCKER -->
+      <!-- ===================================== -->
+      <section id="section-docker" style="display: none;">
+        <div class="card">
+          <div class="card-header">
+            <h3>Containers Docker (docker ps)</h3>
+            <button class="btn secondary" id="btn-docker-refresh">Atualizar</button>
+          </div>
+          <div class="small mt-1" id="docker-meta"></div>
+          <div class="table-wrapper mt-2">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nome</th>
+                  <th>Imagem</th>
+                  <th>Status</th>
+                  <th>Running for</th>
+                  <th>Ports</th>
+                </tr>
+              </thead>
+              <tbody id="docker-body">
+                <tr><td colspan="6" class="muted small">Nenhum dado.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Ações rápidas</h3>
+          <div class="small">
+            Essas ações usam endpoints internos. Idealmente só em ambiente de desenvolvimento.
+          </div>
+          <div class="flex mt-1">
+            <button class="btn" id="btn-docker-restart-app">Reiniciar backend (app)</button>
+            <button class="btn secondary" id="btn-docker-restart-celery">Reiniciar Celery worker</button>
+          </div>
+          <div class="mt-2 small" id="docker-actions-meta"></div>
+        </div>
+      </section>
+
+      <!-- ===================================== -->
+      <!-- ENV & CONFIG -->
+      <!-- ===================================== -->
+      <section id="section-env" style="display: none;">
+        <div class="card">
+          <div class="card-header">
+            <h3>Variáveis de ambiente (.env)</h3>
+            <button class="btn secondary" id="btn-env-refresh">Atualizar</button>
+          </div>
+          <p class="small muted mt-1">
+            Edição pensada apenas para ambiente de desenvolvimento. Valores sensíveis podem aparecer mascarados.
+          </p>
+          <div class="table-wrapper mt-2">
+            <table>
+              <thead>
+                <tr>
+                  <th>Chave</th>
+                  <th>Valor</th>
+                </tr>
+              </thead>
+              <tbody id="env-table-body">
+                <tr><td colspan="2" class="muted small">Carregando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="flex mt-2">
+            <button class="btn secondary" id="btn-env-add-row">Adicionar variável</button>
+            <button class="btn" id="btn-env-save">Salvar alterações</button>
+          </div>
+          <div class="mt-2 small" id="env-meta"></div>
+        </div>
+
+        <div class="card">
+          <h3>Reload do app</h3>
+          <p class="small">
+            Após alterar o .env, você pode solicitar que o backend recarregue a configuração
+            (ex.: chamar uma função que dá restart no processo em dev).
+          </p>
+          <button class="btn" id="btn-env-reload-app">Recarregar configuração do app</button>
+          <div class="mt-2 small" id="env-reload-meta"></div>
+        </div>
+      </section>
+
+      <!-- ===================================== -->
+      <!-- LOGS -->
+      <!-- ===================================== -->
+      <section id="section-logs" style="display: none;">
+        <div class="card">
+          <h3>Logs do servidor</h3>
+          <div class="flex mt-1">
+            <div class="field" style="flex: 1 1 200px;">
+              <label for="log-path">Caminho do arquivo</label>
+              <input id="log-path" type="text" placeholder="logs/app.log ou outro" />
+            </div>
+            <div class="field" style="width: 120px;">
+              <label for="log-lines">Linhas</label>
+              <input id="log-lines" type="number" value="200" min="10" max="2000" />
+            </div>
+            <button class="btn" id="btn-load-logs">Carregar logs</button>
+          </div>
+          <div class="small mt-1" id="log-meta"></div>
+        </div>
+
+        <div class="card">
+          <h3>Conteúdo</h3>
+          <pre id="log-content" class="codeblock">Clique em "Carregar logs".</pre>
+        </div>
+      </section>
+
+      <!-- ===================================== -->
+      <!-- TERMINAL -->
+      <!-- ===================================== -->
+      <section id="section-terminal" style="display: none;">
+        <div class="card">
+          <h3>Terminal rápido (comando único)</h3>
+          <div class="small">
+            Comando será executado via <code>shell=True</code>. <strong>USE APENAS EM DEV</strong> e como usuário master.
+          </div>
+          <div class="field mt-1">
+            <label for="term-command">Comando</label>
+            <input id="term-command" type="text" value="ls -la" />
+          </div>
+          <button class="btn" id="btn-run-command">Executar</button>
+          <div class="mt-2 small" id="term-meta"></div>
+        </div>
+
+        <div class="card">
+          <h3>Saída</h3>
+          <div class="small">STDOUT:</div>
+          <pre id="term-stdout" class="codeblock">—</pre>
+          <div class="small mt-2">STDERR:</div>
+          <pre id="term-stderr" class="codeblock">—</pre>
+        </div>
+      </section>
+
+      <!-- ===================================== -->
+      <!-- USERS -->
+      <!-- ===================================== -->
+      <section id="section-users" style="display: none;">
+        <div class="card">
+          <h3>Criar usuário de teste (via /staff)</h3>
+          <div class="small">
+            Payload genérico – ajuste conforme seu <code>staff_controller.py</code> se necessário.
+          </div>
+          <div class="field mt-2">
+            <label for="user-nome">Nome</label>
+            <input id="user-nome" type="text" value="Usuário Teste" />
+          </div>
+          <div class="field">
+            <label for="user-email">Email</label>
+            <input id="user-email" type="email" value="teste@cmi.com.br" />
+          </div>
+          <div class="field">
+            <label for="user-cpf">CPF (somente números)</label>
+            <input id="user-cpf" type="text" value="12345678901" />
+          </div>
+          <div class="field">
+            <label for="user-role-id">Role ID</label>
+            <input id="user-role-id" type="number" value="1" />
+          </div>
+          <div class="field">
+            <label for="user-senha">Senha</label>
+            <input id="user-senha" type="password" value="Teste@123!" />
+          </div>
+          <button class="btn" id="btn-create-user">Criar usuário</button>
+          <div class="mt-2 small" id="user-create-msg"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    // ===============================
+    // Estado global simples
+    // ===============================
+    let accessToken = null;
+    let refreshToken = null;
+
+    const THEME_KEY = "devAdminTheme";
+
+    function setEnvBadge(env) {
+      const el = document.getElementById("env-badge");
+      el.textContent = `ENV: ${env || "desconhecido"}`;
+      if (env === "production") {
+        el.classList.add("env-badge-prod");
+      } else {
+        el.classList.remove("env-badge-prod");
+      }
+    }
+
+    function authHeaders() {
+      const headers = { "Content-Type": "application/json" };
+      if (accessToken) {
+        headers["Authorization"] = `Bearer ${accessToken}`;
+      }
+      return headers;
+    }
+
+    // ===============================
+    // Tema (dark / light)
+    // ===============================
+    function applyTheme(theme) {
+      const root = document.documentElement;
+      const btn = document.getElementById("btn-theme-toggle");
+      root.dataset.theme = theme;
+      try {
+        localStorage.setItem(THEME_KEY, theme);
+      } catch (_) {
+        // ignore
+      }
+      if (btn) {
+        if (theme === "light") {
+          btn.textContent = "☀︎";
+          btn.title = "Usar tema escuro";
+        } else {
+          btn.textContent = "☾";
+          btn.title = "Usar tema claro";
+        }
+      }
+    }
+
+    function initTheme() {
+      let stored = null;
+      try {
+        stored = localStorage.getItem(THEME_KEY);
+      } catch (_) {
+        stored = null;
+      }
+      const initial =
+        stored === "light" || stored === "dark" ? stored : "dark";
+      applyTheme(initial);
+
+      const btn = document.getElementById("btn-theme-toggle");
+      if (btn) {
+        btn.addEventListener("click", () => {
+          const current = document.documentElement.dataset.theme || "dark";
+          const next = current === "dark" ? "light" : "dark";
+          applyTheme(next);
+        });
+      }
+    }
+
+    // ===============================
+    // Navegação entre seções
+    // ===============================
+    const navButtons = document.querySelectorAll(".nav-btn");
+    const sections = {
+      dashboard: document.getElementById("section-dashboard"),
+      auth: document.getElementById("section-auth"),
+      migrations: document.getElementById("section-migrations"),
+      db: document.getElementById("section-db"),
+      git: document.getElementById("section-git"),
+      docker: document.getElementById("section-docker"),
+      env: document.getElementById("section-env"),
+      logs: document.getElementById("section-logs"),
+      terminal: document.getElementById("section-terminal"),
+      users: document.getElementById("section-users"),
+    };
+
+    navButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const section = btn.dataset.section;
+        Object.entries(sections).forEach(([key, el]) => {
+          el.style.display = key === section ? "block" : "none";
+        });
+        navButtons.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        // lazy load de algumas seções
+        if (section === "dashboard") {
+          loadDevHealth();
+          loadAuthSummaryDashboard();
+        } else if (section === "auth") {
+          loadAuthSummary();
+        } else if (section === "git") {
+          loadGitStatus();
+        } else if (section === "docker") {
+          loadDockerStatus();
+        } else if (section === "env") {
+          loadEnvConfig();
+        }
+      });
+    });
+
+    // ===============================
+    // HEALTH / DASHBOARD
+    // ===============================
+    async function loadDevHealth() {
+      const summaryEl = document.getElementById("health-summary");
+      const metricsEl = document.getElementById("dashboard-metrics");
+
+      summaryEl.textContent = "Carregando health...";
+      metricsEl.innerHTML = "";
+
+      try {
+        const res = await fetch("/devtools/health");
+        const data = await res.json();
+
+        setEnvBadge(data.flask_env);
+
+        const dbOk = data.db && data.db.ok;
+        const redisOk = data.redis && data.redis.ok;
+
+        const dbStatus = dbOk ? "OK" : "ERRO";
+        const redisStatus = redisOk ? "OK" : "ERRO";
+
+        summaryEl.textContent = `DB: ${dbStatus} | Redis: ${redisStatus}`;
+        summaryEl.classList.remove("muted");
+
+        const metrics = [];
+
+        metrics.push({
+          label: "Flask ENV",
+          value: data.flask_env || "—",
+        });
+        metrics.push({
+          label: "DB",
+          value: dbOk ? "OK" : "Erro",
+          accent: dbOk ? "ok" : "bad",
+        });
+        metrics.push({
+          label: "Redis",
+          value: redisOk ? "OK" : "Erro",
+          accent: redisOk ? "ok" : "bad",
+        });
+
+        if (data.docker) {
+          metrics.push({
+            label: "Docker CLI",
+            value: data.docker.available ? "Disponível" : "Indisponível",
+            accent: data.docker.available ? "ok" : "bad",
+          });
+          if (data.docker.containers_running != null) {
+            metrics.push({
+              label: "Containers running",
+              value: String(data.docker.containers_running),
+            });
+          }
+        }
+
+        metricsEl.innerHTML = metrics
+          .map(
+            (m) => `
+            <div class="metric-card">
+              <div class="metric-label">${m.label}</div>
+              <div class="metric-value ${
+                m.accent === "ok"
+                  ? "metric-ok"
+                  : m.accent === "bad"
+                  ? "metric-bad"
+                  : ""
+              }">${m.value}</div>
+            </div>
+          `
+          )
+          .join("");
+      } catch (e) {
+        console.error(e);
+        summaryEl.textContent = "Erro ao carregar health";
+      }
+    }
+
+    document
+      .getElementById("btn-refresh-health")
+      .addEventListener("click", loadDevHealth);
+
+    // ===============================
+    // AUTH - LOGIN
+    // ===============================
+    document.getElementById("btn-login").addEventListener("click", async () => {
+      const email = document.getElementById("email").value.trim();
+      const senha = document.getElementById("senha").value;
+      const msgEl = document.getElementById("auth-message");
+      const loginStatus = document.getElementById("login-status");
+
+      msgEl.textContent = "Fazendo login...";
+      msgEl.style.color = "";
+
+      try {
+        const res = await fetch("/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, senha }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          msgEl.textContent = data.error || "Erro ao fazer login";
+          msgEl.style.color = "#f97316";
+          accessToken = null;
+          refreshToken = null;
+          loginStatus.textContent = "Não autenticado";
+          loginStatus.classList.add("muted");
+          return;
+        }
+
+        accessToken = data.access_token;
+        refreshToken = data.refresh_token;
+
+        document.getElementById("access-token-display").textContent =
+          accessToken || "—";
+        document.getElementById("refresh-token-display").textContent =
+          refreshToken || "—";
+
+        msgEl.textContent = "Login OK";
+        msgEl.style.color = "#22c55e";
+        loginStatus.textContent = `Logado como: ${
+          (data.user && data.user.email) || email
+        }`;
+        loginStatus.classList.remove("muted");
+      } catch (e) {
+        console.error(e);
+        msgEl.textContent = "Erro inesperado";
+        msgEl.style.color = "#f97316";
+      }
+    });
+
+    // ===============================
+    // AUTH SUMMARY (Dashboard & aba Auth)
+    // ===============================
+    async function fetchAuthSummary() {
+      const res = await fetch("/devtools/auth/summary");
+      return res.json();
+    }
+
+    function renderAuthMetrics(targetEl, data) {
+      const metrics = [
+        { label: "Usuários (staff)", value: data.staff_total },
+        { label: "Ativos", value: data.staff_active },
+        { label: "Bloqueados", value: data.staff_locked },
+        { label: "Roles", value: data.roles },
+        { label: "Permissões", value: data.permissions },
+        {
+          label: "Refresh tokens ativos",
+          value: data.active_refresh_tokens,
+        },
+      ];
+
+      targetEl.innerHTML = metrics
+        .map(
+          (m) => `
+          <div class="metric-card">
+            <div class="metric-label">${m.label}</div>
+            <div class="metric-value">${m.value}</div>
+          </div>
+        `
+        )
+        .join("");
+    }
+
+    async function loadAuthSummaryDashboard() {
+      const targetEl = document.getElementById("dashboard-auth");
+      targetEl.innerHTML = "<div class='small muted'>Carregando...</div>";
+
+      try {
+        const data = await fetchAuthSummary();
+        renderAuthMetrics(targetEl, data);
+      } catch (e) {
+        console.error(e);
+        targetEl.innerHTML =
+          "<div class='small muted'>Erro ao carregar resumo.</div>";
+      }
+    }
+
+    async function loadAuthSummary() {
+      const metricsEl = document.getElementById("auth-summary-metrics");
+      const msgEl = document.getElementById("auth-summary-msg");
+      const failedBody = document.getElementById("auth-failed-logins-body");
+
+      metricsEl.innerHTML = "<div class='small muted'>Carregando...</div>";
+      msgEl.textContent = "";
+      failedBody.innerHTML =
+        "<tr><td colspan='4' class='muted small'>Carregando...</td></tr>";
+
+      try {
+        const data = await fetchAuthSummary();
+        renderAuthMetrics(metricsEl, data);
+
+        const fails = data.recent_failed_logins || [];
+        if (!fails.length) {
+          failedBody.innerHTML =
+            "<tr><td colspan='4' class='muted small'>Nenhum login falho nas últimas 24h.</td></tr>";
+        } else {
+          failedBody.innerHTML = fails
+            .map((f) => {
+              const reason = f.reason || "-";
+              const email = f.email || f.staff_name || "desconhecido";
+              const when = f.created_at
+                ? new Date(f.created_at).toLocaleString()
+                : "-";
+              return `
+              <tr>
+                <td>${when}</td>
+                <td>${email}</td>
+                <td>${f.ip_address || "-"}</td>
+                <td>${reason}</td>
+              </tr>
+            `;
+            })
+            .join("");
+        }
+      } catch (e) {
+        console.error(e);
+        msgEl.textContent = "Erro ao carregar resumo de autenticação";
+        msgEl.style.color = "#f97316";
+      }
+    }
+
+    document
+      .getElementById("btn-auth-summary-refresh")
+      .addEventListener("click", loadAuthSummary);
+
+    document
+      .getElementById("btn-dashboard-auth-summary")
+      .addEventListener("click", loadAuthSummaryDashboard);
+
+    // ===============================
+    // AUTH SESSIONS POR USUÁRIO
+    // ===============================
+    document
+      .getElementById("btn-auth-load-sessions")
+      .addEventListener("click", async () => {
+        const staffId = document.getElementById("auth-sessions-staff-id").value;
+        const metaEl = document.getElementById("auth-sessions-meta");
+        const bodyEl = document.getElementById("auth-sessions-body");
+
+        if (!staffId) {
+          metaEl.textContent = "Informe um staff_id.";
+          metaEl.style.color = "#f97316";
+          return;
+        }
+
+        metaEl.textContent = "Carregando sessões...";
+        metaEl.style.color = "";
+        bodyEl.innerHTML =
+          "<tr><td colspan='6' class='muted small'>Carregando...</td></tr>";
+
+        try {
+          const res = await fetch(`/devtools/auth/sessions/${staffId}`);
+          const data = await res.json();
+          if (!res.ok) {
+            metaEl.textContent = data.error || "Erro ao carregar sessões";
+            metaEl.style.color = "#f97316";
+            bodyEl.innerHTML =
+              "<tr><td colspan='6' class='muted small'>Erro.</td></tr>";
+            return;
+          }
+
+          metaEl.textContent = `Usuário: ${data.staff_email} | sessões ativas: ${data.sessions_count}`;
+          metaEl.style.color = "#9ca3af";
+
+          if (!data.sessions.length) {
+            bodyEl.innerHTML =
+              "<tr><td colspan='6' class='muted small'>Nenhuma sessão ativa.</td></tr>";
+          } else {
+            bodyEl.innerHTML = data.sessions
+              .map((s) => {
+                const created = s.created_at
+                  ? new Date(s.created_at).toLocaleString()
+                  : "-";
+                const lastUsed = s.last_used_at
+                  ? new Date(s.last_used_at).toLocaleString()
+                  : "-";
+                const expires = s.expires_at
+                  ? new Date(s.expires_at).toLocaleString()
+                  : "-";
+                return `
+                <tr>
+                  <td>${s.id}</td>
+                  <td>${s.ip_address || "-"}</td>
+                  <td>${s.device_info || "-"}</td>
+                  <td>${created}</td>
+                  <td>${lastUsed}</td>
+                  <td>${expires}</td>
+                </tr>
+              `;
+              })
+              .join("");
+          }
+        } catch (e) {
+          console.error(e);
+          metaEl.textContent = "Erro inesperado";
+          metaEl.style.color = "#f97316";
+        }
+      });
+
+    // ===============================
+    // MIGRAÇÕES
+    // ===============================
+    async function refreshMigrationsStatus() {
+      const currentEl = document.getElementById("mig-current");
+      const headEl = document.getElementById("mig-head");
+      const statusEl = document.getElementById("mig-status");
+
+      currentEl.textContent = "…";
+      headEl.textContent = "…";
+      statusEl.textContent = "Carregando...";
+      statusEl.className = "small muted";
+
+      try {
+        const res = await fetch("/devtools/migrations/status");
+        const data = await res.json();
+        if (!res.ok) {
+          statusEl.textContent = data.error || "Erro ao consultar status";
+          statusEl.className = "small status-bad";
+          return;
+        }
+
+        currentEl.textContent = data.current || "—";
+        headEl.textContent = data.head || "—";
+
+        if (data.is_up_to_date) {
+          statusEl.textContent = "Banco está em HEAD";
+          statusEl.className = "small status-ok";
+        } else {
+          statusEl.textContent = "Banco desatualizado";
+          statusEl.className = "small status-bad";
+        }
+      } catch (e) {
+        console.error(e);
+        statusEl.textContent = "Erro inesperado";
+        statusEl.className = "small status-bad";
+      }
+    }
+
+    document
+      .getElementById("btn-refresh-migrations")
+      .addEventListener("click", refreshMigrationsStatus);
+
+    document
+      .getElementById("btn-mig-upgrade")
+      .addEventListener("click", async () => {
+        const target =
+          document.getElementById("mig-upgrade-target").value.trim() || "head";
+        const msgEl = document.getElementById("mig-upgrade-msg");
+        msgEl.textContent = "Executando upgrade...";
+        msgEl.style.color = "";
+
+        try {
+          const res = await fetch("/devtools/migrations/upgrade", {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({ target }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            msgEl.textContent = data.error || "Erro ao executar upgrade";
+            msgEl.style.color = "#f97316";
+            return;
+          }
+          msgEl.textContent = data.message || "Upgrade OK";
+          msgEl.style.color = "#22c55e";
+          refreshMigrationsStatus();
+        } catch (e) {
+          console.error(e);
+          msgEl.textContent = "Erro inesperado";
+          msgEl.style.color = "#f97316";
+        }
+      });
+
+    document
+      .getElementById("btn-mig-downgrade")
+      .addEventListener("click", async () => {
+        const target =
+          document.getElementById("mig-downgrade-target").value.trim();
+        const msgEl = document.getElementById("mig-downgrade-msg");
+
+        if (!target) {
+          msgEl.textContent = "Informe um target para downgrade";
+          msgEl.style.color = "#f97316";
+          return;
+        }
+
+        msgEl.textContent = "Executando downgrade...";
+        msgEl.style.color = "";
+
+        try {
+          const res = await fetch("/devtools/migrations/downgrade", {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({ target }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            msgEl.textContent = data.error || "Erro ao executar downgrade";
+            msgEl.style.color = "#f97316";
+            return;
+          }
+          msgEl.textContent = data.message || "Downgrade OK";
+          msgEl.style.color = "#22c55e";
+          refreshMigrationsStatus();
+        } catch (e) {
+          console.error(e);
+          msgEl.textContent = "Erro inesperado";
+          msgEl.style.color = "#f97316";
+        }
+      });
+
+    // ===============================
+    // DB EXPLORER
+    // ===============================
+    async function loadDbSchema() {
+      const selectEl = document.getElementById("db-tables-select");
+      const metaEl = document.getElementById("db-table-meta");
+      const colsBody = document.getElementById("db-columns-body");
+      const sampleHead = document.getElementById("db-sample-head");
+      const sampleBody = document.getElementById("db-sample-body");
+
+      metaEl.textContent = "Carregando schema...";
+      selectEl.innerHTML =
+        '<option value="">Carregando...</option>';
+      colsBody.innerHTML =
+        "<tr><td colspan='4' class='muted small'>Carregando...</td></tr>";
+      sampleHead.innerHTML = "";
+      sampleBody.innerHTML =
+        "<tr><td class='muted small'>Nenhum dado</td></tr>";
+
+      try {
+        const res = await fetch("/devtools/db/schema");
+        const data = await res.json();
+        if (!res.ok) {
+          metaEl.textContent = data.error || "Erro ao carregar schema";
+          metaEl.style.color = "#f97316";
+          return;
+        }
+
+        const tables = data.tables || [];
+        if (!tables.length) {
+          metaEl.textContent = "Nenhuma tabela encontrada.";
+          selectEl.innerHTML =
+            '<option value="">Nenhuma tabela</option>';
+          return;
+        }
+
+        selectEl.innerHTML =
+          '<option value="">Selecione uma tabela...</option>' +
+          tables
+            .map(
+              (t) =>
+                `<option value="${t.name}">${t.name}</option>`
+            )
+            .join("");
+
+        metaEl.textContent = `Tabelas encontradas: ${tables.length}`;
+        metaEl.style.color = "#9ca3af";
+      } catch (e) {
+        console.error(e);
+        metaEl.textContent = "Erro inesperado";
+        metaEl.style.color = "#f97316";
+      }
+    }
+
+    async function loadTableDetails(tableName) {
+      const metaEl = document.getElementById("db-table-meta");
+      const colsBody = document.getElementById("db-columns-body");
+      const sampleHead = document.getElementById("db-sample-head");
+      const sampleBody = document.getElementById("db-sample-body");
+
+      if (!tableName) {
+        metaEl.textContent = "Nenhuma tabela selecionada.";
+        colsBody.innerHTML =
+          "<tr><td colspan='4' class='muted small'>Nenhuma tabela selecionada.</td></tr>";
+        sampleHead.innerHTML = "";
+        sampleBody.innerHTML =
+          "<tr><td class='muted small'>Nenhum dado</td></tr>";
+        return;
+      }
+
+      metaEl.textContent = `Carregando detalhes de "${tableName}"...`;
+      colsBody.innerHTML =
+        "<tr><td colspan='4' class='muted small'>Carregando...</td></tr>";
+      sampleHead.innerHTML = "";
+      sampleBody.innerHTML =
+        "<tr><td class='muted small'>Carregando...</td></tr>";
+
+      try {
+        const res = await fetch(`/devtools/db/schema/${tableName}`);
+        const data = await res.json();
+        if (!res.ok) {
+          metaEl.textContent = data.error || "Erro ao carregar tabela";
+          metaEl.style.color = "#f97316";
+          return;
+        }
+
+        const columns = data.columns || [];
+        const rows = data.sample_rows || [];
+
+        metaEl.textContent = `Tabela: ${data.name} | colunas: ${columns.length} | sample rows: ${rows.length}`;
+        metaEl.style.color = "#9ca3af";
+
+        colsBody.innerHTML = columns
+          .map(
+            (c) => `
+            <tr>
+              <td>${c.name}</td>
+              <td>${c.type}</td>
+              <td>${c.primary_key ? "✓" : ""}</td>
+              <td>${c.nullable ? "Sim" : "Não"}</td>
+            </tr>
+          `
+          )
+          .join("");
+
+        if (!rows.length) {
+          sampleHead.innerHTML = "";
+          sampleBody.innerHTML =
+            "<tr><td class='muted small'>Nenhum dado (tabela vazia ou erro de leitura).</td></tr>";
+        } else {
+          const cols = Object.keys(rows[0] || {});
+          sampleHead.innerHTML = `
+            <tr>
+              ${cols.map((c) => `<th>${c}</th>`).join("")}
+            </tr>
+          `;
+          sampleBody.innerHTML = rows
+            .map(
+              (row) => `
+              <tr>
+                ${cols
+                  .map((c) => `<td>${row[c] != null ? row[c] : ""}</td>`)
+                  .join("")}
+              </tr>
+            `
+            )
+            .join("");
+        }
+      } catch (e) {
+        console.error(e);
+        metaEl.textContent = "Erro inesperado";
+        metaEl.style.color = "#f97316";
+      }
+    }
+
+    document
+      .getElementById("btn-db-load-schema")
+      .addEventListener("click", loadDbSchema);
+
+    document
+      .getElementById("db-tables-select")
+      .addEventListener("change", (e) => {
+        loadTableDetails(e.target.value);
+      });
+
+    // ===============================
+    // GIT / REPO
+    // ===============================
+    function normalizeGitStatus(code) {
+      if (!code) return "desconhecido";
+      const c = String(code).trim();
+      const map = {
+        M: "Modificado",
+        A: "Adicionado",
+        D: "Removido",
+        R: "Renomeado",
+        C: "Copiado",
+        U: "Em conflito",
+        "?": "Não rastreado",
+      };
+      if (map[c]) return map[c];
+      if (c === "??") return "Não rastreado";
+      return c;
+    }
+
+    async function loadGitStatus() {
+      const metaEl = document.getElementById("git-meta");
+      const metricsEl = document.getElementById("git-metrics");
+      const filesBody = document.getElementById("git-files-body");
+
+      if (!metaEl || !metricsEl || !filesBody) return;
+
+      metaEl.textContent = "Consultando git status...";
+      metaEl.style.color = "";
+      metricsEl.innerHTML =
+        "<div class='small muted'>Carregando...</div>";
+      filesBody.innerHTML =
+        "<tr><td colspan='3' class='muted small'>Carregando...</td></tr>";
+
+      try {
+        const res = await fetch("/devtools/git/status");
+        const data = await res.json();
+
+        if (!res.ok) {
+          metaEl.textContent = data.error || "Erro ao consultar git status";
+          metaEl.style.color = "#f97316";
+          metricsEl.innerHTML = "";
+          filesBody.innerHTML =
+            "<tr><td colspan='3' class='muted small'>Erro.</td></tr>";
+          return;
+        }
+
+        if (!data.available) {
+          metaEl.textContent =
+            data.error ||
+            "Git CLI não está disponível dentro do container.";
+          metaEl.style.color = "#f97316";
+          metricsEl.innerHTML = "";
+          filesBody.innerHTML =
+            "<tr><td colspan='3' class='muted small'>Indisponível.</td></tr>";
+          return;
+        }
+
+        const last = data.last_commit || {};
+        const lastHash = last.short_hash || last.hash || "";
+        const lastShort = lastHash ? lastHash.slice(0, 7) : "";
+        const lastLabel = last.message
+          ? `${lastShort} – ${last.message}`
+          : last.hash || "—";
+
+        const aheadVal = data.ahead != null ? data.ahead : 0;
+        const behindVal = data.behind != null ? data.behind : 0;
+
+        const metrics = [
+          { label: "Branch", value: data.branch || "—" },
+          {
+            label: "Estado",
+            value: data.is_clean ? "Clean (sem alterações)" : "Com alterações",
+            accent: data.is_clean ? "ok" : "bad",
+          },
+          {
+            label: "Ahead",
+            value: String(aheadVal),
+          },
+          {
+            label: "Behind",
+            value: String(behindVal),
+          },
+          {
+            label: "Último commit",
+            value: lastLabel || "—",
+          },
+        ];
+
+        metricsEl.innerHTML = metrics
+          .map(
+            (m) => `
+          <div class="metric-card">
+            <div class="metric-label">${m.label}</div>
+            <div class="metric-value ${
+              m.accent === "ok"
+                ? "metric-ok"
+                : m.accent === "bad"
+                ? "metric-bad"
+                : ""
+            }">${m.value}</div>
+          </div>
+        `
+          )
+          .join("");
+
+        const files = data.files || [];
+        if (!files.length) {
+          filesBody.innerHTML =
+            "<tr><td colspan='3' class='muted small'>Working tree limpa (sem alterações locais).</td></tr>";
+        } else {
+          filesBody.innerHTML = files
+            .map((f) => {
+              const status = normalizeGitStatus(f.status || f.code);
+              const staged =
+                f.staged === true
+                  ? "Sim"
+                  : f.staged === false
+                  ? "Não"
+                  : (f.index_status || "-");
+              return `
+              <tr>
+                <td>${f.path || f.file || "-"}</td>
+                <td>${status}</td>
+                <td>${staged}</td>
+              </tr>
+            `;
+            })
+            .join("");
+        }
+
+        metaEl.textContent =
+          data.repo_root
+            ? `Repo: ${data.repo_root} `
+            : "Status de git carregado.";
+        metaEl.style.color = "#9ca3af";
+      } catch (e) {
+        console.error(e);
+        metaEl.textContent = "Erro inesperado ao carregar git status";
+        metaEl.style.color = "#f97316";
+        filesBody.innerHTML =
+          "<tr><td colspan='3' class='muted small'>Erro.</td></tr>";
+      }
+    }
+
+    const gitRefreshBtn = document.getElementById("btn-git-refresh");
+    if (gitRefreshBtn) {
+      gitRefreshBtn.addEventListener("click", loadGitStatus);
+    }
+
+    // ===============================
+    // DOCKER
+    // ===============================
+    async function loadDockerStatus() {
+      const metaEl = document.getElementById("docker-meta");
+      const bodyEl = document.getElementById("docker-body");
+
+      if (!metaEl || !bodyEl) return;
+
+      metaEl.textContent = "Consultando docker ps...";
+      metaEl.style.color = "";
+      bodyEl.innerHTML =
+        "<tr><td colspan='6' class='muted small'>Carregando...</td></tr>";
+
+      try {
+        const res = await fetch("/devtools/docker/ps");
+        const data = await res.json();
+
+        if (!res.ok) {
+          metaEl.textContent = data.error || "Erro ao executar docker ps";
+          metaEl.style.color = "#f97316";
+          bodyEl.innerHTML =
+            "<tr><td colspan='6' class='muted small'>Erro.</td></tr>";
+          return;
+        }
+
+        if (!data.available) {
+          metaEl.textContent =
+            data.error ||
+            "docker CLI não está disponível dentro do container.";
+          metaEl.style.color = "#f97316";
+          bodyEl.innerHTML =
+            "<tr><td colspan='6' class='muted small'>Indisponível.</td></tr>";
+          return;
+        }
+
+        const containers = data.containers || [];
+        metaEl.textContent = `Containers: ${containers.length}`;
+        metaEl.style.color = "#9ca3af";
+
+        if (!containers.length) {
+          bodyEl.innerHTML =
+            "<tr><td colspan='6' class='muted small'>Nenhum container encontrado.</td></tr>";
+        } else {
+          bodyEl.innerHTML = containers
+            .map(
+              (c) => `
+              <tr>
+                <td>${c.id}</td>
+                <td>${c.name}</td>
+                <td>${c.image}</td>
+                <td>${c.status}</td>
+                <td>${c.running_for || "-"}</td>
+                <td>${c.ports || "-"}</td>
+              </tr>
+            `
+            )
+            .join("");
+        }
+      } catch (e) {
+        console.error(e);
+        metaEl.textContent = "Erro inesperado";
+        metaEl.style.color = "#f97316";
+      }
+    }
+
+    document
+      .getElementById("btn-docker-refresh")
+      .addEventListener("click", loadDockerStatus);
+
+    async function dockerRestart(target) {
+      const metaEl = document.getElementById("docker-actions-meta");
+      if (!metaEl) return;
+
+      metaEl.textContent = `Enviando requisição de restart (${target})...`;
+      metaEl.style.color = "";
+
+      try {
+        const res = await fetch("/devtools/docker/restart", {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({ target }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          metaEl.textContent =
+            data.error || `Erro ao reiniciar container (${target})`;
+          metaEl.style.color = "#f97316";
+          return;
+        }
+        metaEl.textContent =
+          data.message || `Restart solicitado para: ${target}`;
+        metaEl.style.color = "#22c55e";
+      } catch (e) {
+        console.error(e);
+        metaEl.textContent = "Erro inesperado ao chamar restart";
+        metaEl.style.color = "#f97316";
+      }
+    }
+
+    const btnRestartApp = document.getElementById("btn-docker-restart-app");
+    if (btnRestartApp) {
+      btnRestartApp.addEventListener("click", () =>
+        dockerRestart("app")
+      );
+    }
+    const btnRestartCelery = document.getElementById(
+      "btn-docker-restart-celery"
+    );
+    if (btnRestartCelery) {
+      btnRestartCelery.addEventListener("click", () =>
+        dockerRestart("celery")
+      );
+    }
+
+    // ===============================
+    // ENV & CONFIG
+    // ===============================
+    function isProbablySensitive(key) {
+      if (!key) return false;
+      const upper = key.toUpperCase();
+      return (
+        upper.includes("SECRET") ||
+        upper.includes("PASSWORD") ||
+        upper.includes("TOKEN") ||
+        upper.includes("KEY")
+      );
+    }
+
+    async function loadEnvConfig() {
+      const bodyEl = document.getElementById("env-table-body");
+      const metaEl = document.getElementById("env-meta");
+      if (!bodyEl || !metaEl) return;
+
+      metaEl.textContent = "Carregando .env...";
+      metaEl.style.color = "";
+      bodyEl.innerHTML =
+        "<tr><td colspan='2' class='muted small'>Carregando...</td></tr>";
+
+      try {
+        const res = await fetch("/devtools/env");
+        const data = await res.json();
+        if (!res.ok) {
+          metaEl.textContent = data.error || "Erro ao carregar .env";
+          metaEl.style.color = "#f97316";
+          bodyEl.innerHTML =
+            "<tr><td colspan='2' class='muted small'>Erro.</td></tr>";
+          return;
+        }
+
+        const env = data.env || {};
+        const entries = Object.entries(env);
+
+        if (!entries.length) {
+          bodyEl.innerHTML =
+            "<tr><td colspan='2' class='muted small'>Nenhuma variável carregada.</td></tr>";
+        } else {
+          bodyEl.innerHTML = entries
+            .map(([key, value]) => {
+              const sensitive = isProbablySensitive(key);
+              const type = sensitive ? "password" : "text";
+              const val = value != null ? value : "";
+              return `
+              <tr class="env-row">
+                <td>
+                  <input
+                    class="env-key"
+                    type="text"
+                    value="${key}"
+                  />
+                </td>
+                <td>
+                  <input
+                    class="env-value"
+                    type="${type}"
+                    value="${val}"
+                  />
+                </td>
+              </tr>
+            `;
+            })
+            .join("");
+        }
+
+        const src = data.source || ".env";
+        metaEl.textContent = `Carregado de: ${src}`;
+        metaEl.style.color = "#9ca3af";
+      } catch (e) {
+        console.error(e);
+        metaEl.textContent = "Erro inesperado ao ler .env";
+        metaEl.style.color = "#f97316";
+        bodyEl.innerHTML =
+          "<tr><td colspan='2' class='muted small'>Erro.</td></tr>";
+      }
+    }
+
+    const btnEnvRefresh = document.getElementById("btn-env-refresh");
+    if (btnEnvRefresh) {
+      btnEnvRefresh.addEventListener("click", loadEnvConfig);
+    }
+
+    const btnEnvAddRow = document.getElementById("btn-env-add-row");
+    if (btnEnvAddRow) {
+      btnEnvAddRow.addEventListener("click", () => {
+        const bodyEl = document.getElementById("env-table-body");
+        if (!bodyEl) return;
+
+        if (
+          bodyEl.children.length === 1 &&
+          bodyEl.children[0].querySelector(".muted")
+        ) {
+          bodyEl.innerHTML = "";
+        }
+
+        const tr = document.createElement("tr");
+        tr.className = "env-row";
+        tr.innerHTML = `
+          <td>
+            <input
+              class="env-key"
+              type="text"
+              placeholder="NOVA_VARIAVEL"
+            />
+          </td>
+          <td>
+            <input
+              class="env-value"
+              type="text"
+              placeholder="valor"
+            />
+          </td>
+        `;
+        bodyEl.appendChild(tr);
+      });
+    }
+
+    const btnEnvSave = document.getElementById("btn-env-save");
+    if (btnEnvSave) {
+      btnEnvSave.addEventListener("click", async () => {
+        const metaEl = document.getElementById("env-meta");
+        const bodyEl = document.getElementById("env-table-body");
+        if (!metaEl || !bodyEl) return;
+
+        const rows = bodyEl.querySelectorAll(".env-row");
+        const env = {};
+        rows.forEach((tr) => {
+          const keyInput = tr.querySelector(".env-key");
+          const valInput = tr.querySelector(".env-value");
+          if (!keyInput) return;
+          const key = keyInput.value.trim();
+          if (!key) return;
+          env[key] = valInput ? valInput.value : "";
+        });
+
+        metaEl.textContent = "Salvando .env...";
+        metaEl.style.color = "";
+
+        try {
+          const res = await fetch("/devtools/env", {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({ env }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            metaEl.textContent =
+              data.error || data.message || "Erro ao salvar .env";
+            metaEl.style.color = "#f97316";
+            return;
+          }
+          metaEl.textContent =
+            data.message || "Arquivo .env salvo com sucesso.";
+          metaEl.style.color = "#22c55e";
+        } catch (e) {
+          console.error(e);
+          metaEl.textContent = "Erro inesperado ao salvar .env";
+          metaEl.style.color = "#f97316";
+        }
+      });
+    }
+
+    const btnEnvReloadApp = document.getElementById("btn-env-reload-app");
+    if (btnEnvReloadApp) {
+      btnEnvReloadApp.addEventListener("click", async () => {
+        const metaEl = document.getElementById("env-reload-meta");
+        if (!metaEl) return;
+
+        metaEl.textContent = "Solicitando reload da configuração...";
+        metaEl.style.color = "";
+
+        try {
+          const res = await fetch("/devtools/env/reload", {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({}),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            metaEl.textContent =
+              data.error || "Erro ao solicitar reload de env";
+            metaEl.style.color = "#f97316";
+            return;
+          }
+          metaEl.textContent =
+            data.message ||
+            "Reload de configuração solicitado. Se estiver em dev, o app pode reiniciar.";
+          metaEl.style.color = "#22c55e";
+        } catch (e) {
+          console.error(e);
+          metaEl.textContent = "Erro inesperado ao solicitar reload";
+          metaEl.style.color = "#f97316";
+        }
+      });
+    }
+
+    // ===============================
+    // LOGS
+    // ===============================
+    document
+      .getElementById("btn-load-logs")
+      .addEventListener("click", async () => {
+        const path = document.getElementById("log-path").value.trim();
+        const lines = parseInt(
+          document.getElementById("log-lines").value || "200",
+          10
+        );
+        const metaEl = document.getElementById("log-meta");
+        const contentEl = document.getElementById("log-content");
+
+        metaEl.textContent = "Carregando...";
+        metaEl.style.color = "";
+        contentEl.textContent = "";
+
+        const params = new URLSearchParams();
+        if (path) params.set("path", path);
+        if (lines) params.set("lines", String(lines));
+
+        try {
+          const res = await fetch(`/devtools/logs?${params.toString()}`);
+          const data = await res.json();
+          if (!res.ok) {
+            metaEl.textContent = data.error || "Erro ao carregar logs";
+            metaEl.style.color = "#f97316";
+            return;
+          }
+          const content = data.content || [];
+          metaEl.textContent = `Arquivo: ${data.path} | linhas: ${content.length}`;
+          metaEl.style.color = "#9ca3af";
+          contentEl.textContent = content.join("\n");
+        } catch (e) {
+          console.error(e);
+          metaEl.textContent = "Erro inesperado";
+          metaEl.style.color = "#f97316";
+        }
+      });
+
+    // ===============================
+    // TERMINAL
+    // ===============================
+    document
+      .getElementById("btn-run-command")
+      .addEventListener("click", async () => {
+        const cmd = document.getElementById("term-command").value.trim();
+        const metaEl = document.getElementById("term-meta");
+        const outEl = document.getElementById("term-stdout");
+        const errEl = document.getElementById("term-stderr");
+
+        if (!cmd) {
+          metaEl.textContent = "Informe um comando";
+          metaEl.style.color = "#f97316";
+          return;
+        }
+
+        metaEl.textContent = "Executando...";
+        metaEl.style.color = "";
+        outEl.textContent = "";
+        errEl.textContent = "";
+
+        try {
+          const res = await fetch("/devtools/terminal", {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({ command: cmd }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            metaEl.textContent = data.error || "Erro ao executar comando";
+            metaEl.style.color = "#f97316";
+            return;
+          }
+          metaEl.textContent = `exit code: ${data.returncode}`;
+          metaEl.style.color =
+            data.returncode === 0 ? "#22c55e" : "#f97316";
+          outEl.textContent = data.stdout || "—";
+          errEl.textContent = data.stderr || "—";
+        } catch (e) {
+          console.error(e);
+          metaEl.textContent = "Erro inesperado";
+          metaEl.style.color = "#f97316";
+        }
+      });
+
+    // ===============================
+    // CRIAR USUÁRIO DE TESTE
+    // ===============================
+    document
+      .getElementById("btn-create-user")
+      .addEventListener("click", async () => {
+        const nome = document.getElementById("user-nome").value.trim();
+        const email = document.getElementById("user-email").value.trim();
+        const cpf = document.getElementById("user-cpf").value.trim();
+        const roleId = parseInt(
+          document.getElementById("user-role-id").value || "1",
+          10
+        );
+        const senha = document.getElementById("user-senha").value;
+        const msgEl = document.getElementById("user-create-msg");
+
+        if (!accessToken) {
+          msgEl.textContent = "Faça login primeiro (seção Autenticação).";
+          msgEl.style.color = "#f97316";
+          return;
+        }
+
+        msgEl.textContent = "Criando usuário...";
+        msgEl.style.color = "#9ca3af";
+
+        const payload = {
+          nome,
+          email,
+          cpf,
+          role_id: roleId,
+          senha,
+          staff_type: "outro",
+          is_active: true,
+        };
+
+        try {
+          const res = await fetch("/staff", {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            msgEl.textContent =
+              data.error || data.message || "Erro ao criar usuário";
+            msgEl.style.color = "#f97316";
+            return;
+          }
+          msgEl.textContent =
+            data.message || `Usuário criado com ID: ${data.id || "?"}`;
+          msgEl.style.color = "#22c55e";
+        } catch (e) {
+          console.error(e);
+          msgEl.textContent = "Erro inesperado";
+          msgEl.style.color = "#f97316";
+        }
+      });
+
+    // ===============================
+    // Init
+    // ===============================
+    (function init() {
+      initTheme();
+      // Carrega health e resumo auth na dashboard ao abrir
+      loadDevHealth();
+      loadAuthSummaryDashboard();
+      refreshMigrationsStatus();
+    })();
+  </script>
+</body>
+</html>

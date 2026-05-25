@@ -1,0 +1,67 @@
+# ============================================
+# Docker Compose - CMI-PCG Frontend
+# ============================================
+#
+# Container:
+#   - cmi-pcg-frontend (Nginx :3000 -> :80)
+#
+# Rede:
+#   - cmi-network (compartilhada com backend)
+#
+# IMPORTANTE:
+#   O backend NÃO precisa estar online para o frontend subir.
+#   O Nginx usa resolução DNS dinâmica e retorna erro 503
+#   amigável se o backend estiver offline.
+#
+# ============================================
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    image: cmi-pcg-frontend:latest
+    container_name: cmi-pcg-frontend
+    restart: unless-stopped
+
+    ports:
+      - "3000:80"
+
+    environment:
+      - NODE_ENV=production
+      - TZ=America/Sao_Paulo
+
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 128M
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+    networks:
+      - cmi-network
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  cmi-network:
+    # Usa a rede criada pelo backend
+    external: true

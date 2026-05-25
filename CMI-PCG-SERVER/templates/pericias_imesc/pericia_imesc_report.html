@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Perícia IMESC - {{ pericia.protocolo }}</title>
+  <style>
+    /* ========================================
+       CONFIGURAÇÕES DE PÁGINA A4
+       ======================================== */
+    @page {
+      size: A4;
+      margin: 12mm 12mm 15mm 12mm;
+      
+      @bottom-center {
+        content: "Página " counter(page) " de " counter(pages);
+        font-family: Arial, sans-serif;
+        font-size: 8pt;
+        color: #666;
+      }
+    }
+
+    /* ========================================
+       RESET E BASE
+       ======================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 9pt;
+      color: #333;
+      line-height: 1.4;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+    }
+
+    .content-wrapper {
+      flex: 1;
+    }
+
+    /* ========================================
+       HEADER / CABEÇALHO
+       ======================================== */
+    .header {
+      display: flex;
+      align-items: center;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #0d6efd;
+    }
+
+    .logo-area {
+      width: 60px;
+      height: 60px;
+      flex-shrink: 0;
+    }
+
+    .logo-area img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .logo-placeholder {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: bold;
+      font-size: 12pt;
+    }
+
+    .header-content {
+      flex: 1;
+      text-align: center;
+      padding: 0 10px;
+    }
+
+    .header-content h1 {
+      font-size: 14pt;
+      font-weight: 700;
+      color: #0d6efd;
+      margin-bottom: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .header-content .subtitle {
+      font-size: 10pt;
+      color: #495057;
+      font-weight: 500;
+    }
+
+    .header-content .address {
+      font-size: 7pt;
+      color: #6c757d;
+      margin-top: 1px;
+    }
+
+    .header-meta {
+      text-align: right;
+      font-size: 7pt;
+      color: #6c757d;
+      flex-shrink: 0;
+    }
+
+    .header-meta .date {
+      font-weight: 600;
+      color: #495057;
+      font-size: 8pt;
+    }
+
+    /* ========================================
+       PROTOCOLO BOX
+       ======================================== */
+    .protocolo-container {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      padding: 8px 15px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .protocolo-info {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .protocolo-label {
+      font-size: 7pt;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .protocolo-number {
+      font-size: 12pt;
+      font-weight: 700;
+      color: #212529;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 8pt;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .status-concluido {
+      background: #d1e7dd;
+      color: #0f5132;
+    }
+
+    .status-aguardando_triagem {
+      background: #fff3cd;
+      color: #664d03;
+    }
+
+    .status-aguardando_medico {
+      background: #cfe2ff;
+      color: #084298;
+    }
+
+    .status-cancelado {
+      background: #f8d7da;
+      color: #842029;
+    }
+
+    /* ========================================
+       SEÇÕES
+       ======================================== */
+    .section {
+      margin-bottom: 10px;
+      page-break-inside: avoid;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .section-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9pt;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .section-icon.blue { background: #cfe2ff; color: #0d6efd; }
+    .section-icon.green { background: #d1e7dd; color: #198754; }
+    .section-icon.orange { background: #ffe5d0; color: #fd7e14; }
+    .section-icon.teal { background: #d2f4ea; color: #0d9488; }
+
+    .section-title {
+      font-size: 10pt;
+      font-weight: 600;
+      color: #212529;
+      flex: 1;
+    }
+
+    .section-date {
+      font-size: 7pt;
+      color: #6c757d;
+    }
+
+    /* ========================================
+       PACIENTE CARD
+       ======================================== */
+    .paciente-card {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 6px;
+      padding: 8px 12px;
+    }
+
+    .paciente-nome {
+      font-size: 11pt;
+      font-weight: 600;
+      color: #212529;
+      margin-bottom: 4px;
+    }
+
+    .paciente-details {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .paciente-detail {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .info-label {
+      font-size: 7pt;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.2px;
+    }
+
+    .info-value {
+      font-size: 9pt;
+      color: #212529;
+      font-weight: 500;
+    }
+
+    /* ========================================
+       BOXES DE PARECER
+       ======================================== */
+    .parecer-container {
+      background: #fff;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .parecer-header {
+      padding: 6px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .parecer-header.social {
+      background: linear-gradient(135deg, #d1e7dd 0%, #c3e6cb 100%);
+      border-bottom: 1px solid #badbcc;
+    }
+
+    .parecer-header.medico {
+      background: linear-gradient(135deg, #cfe2ff 0%, #b6d4fe 100%);
+      border-bottom: 1px solid #9ec5fe;
+    }
+
+    .parecer-author {
+      font-weight: 600;
+      color: #212529;
+      font-size: 9pt;
+    }
+
+    .parecer-registro {
+      font-size: 7pt;
+      color: #495057;
+    }
+
+    .parecer-body {
+      padding: 10px 12px;
+    }
+
+    .parecer-text {
+      font-size: 9pt;
+      color: #212529;
+      line-height: 1.5;
+      text-align: justify;
+      white-space: pre-wrap;
+    }
+
+    .parecer-empty {
+      color: #6c757d;
+      font-style: italic;
+      text-align: center;
+      padding: 15px;
+      font-size: 8pt;
+    }
+
+    /* ========================================
+       CONCLUSÃO BOX
+       ======================================== */
+    .conclusao-box {
+      background: #e8f5e9;
+      border: 1px solid #a5d6a7;
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-top: 8px;
+    }
+
+    .conclusao-title {
+      font-size: 8pt;
+      font-weight: 600;
+      color: #2e7d32;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 4px;
+    }
+
+    .conclusao-text {
+      font-size: 10pt;
+      color: #1b5e20;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .cid-badge {
+      display: inline-block;
+      background: #fff;
+      border: 1px solid #81c784;
+      border-radius: 3px;
+      padding: 2px 8px;
+      font-size: 8pt;
+      font-weight: 600;
+      color: #2e7d32;
+      margin-top: 6px;
+    }
+
+    /* ========================================
+       OBSERVAÇÕES
+       ======================================== */
+    .observacoes-box {
+      background: #fff8e1;
+      border: 1px solid #ffe082;
+      border-radius: 6px;
+      padding: 8px 12px;
+    }
+
+    .observacoes-text {
+      font-size: 8pt;
+      color: #5d4037;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+
+    /* ========================================
+       BLOCO DE ASSINATURAS E RODAPÉ
+       Posicionado no final da página
+       ======================================== */
+    .footer-block {
+      margin-top: auto;
+      padding-top: 20px;
+      page-break-inside: avoid;
+    }
+
+    .signatures-section {
+      padding: 15px 0;
+      border-top: 1px solid #dee2e6;
+    }
+
+    .signatures-grid {
+      display: flex;
+      justify-content: space-around;
+      gap: 40px;
+      padding: 0 20px;
+    }
+
+    .signature-block {
+      flex: 1;
+      max-width: 220px;
+      text-align: center;
+    }
+
+    .signature-line {
+      border-top: 1px solid #333;
+      padding-top: 8px;
+      margin-top: 60px;
+    }
+
+    .signature-name {
+      font-size: 9pt;
+      font-weight: 600;
+      color: #212529;
+    }
+
+    .signature-info {
+      font-size: 7pt;
+      color: #6c757d;
+      margin-top: 1px;
+    }
+
+    /* ========================================
+       FOOTER
+       ======================================== */
+    .document-footer {
+      margin-top: 20px;
+      padding-top: 10px;
+      border-top: 1px solid #dee2e6;
+      text-align: center;
+    }
+
+    .footer-text {
+      font-size: 7pt;
+      color: #6c757d;
+      line-height: 1.3;
+    }
+
+    .footer-text strong {
+      color: #495057;
+    }
+
+    /* ========================================
+       UTILITÁRIOS
+       ======================================== */
+    .keep-together {
+      page-break-inside: avoid;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="content-wrapper">
+    <!-- CABEÇALHO -->
+    <header class="header">
+      <div class="logo-area">
+        {% if logo_path %}
+          <img src="{{ logo_path }}" alt="Logo CMI" />
+        {% else %}
+          <div class="logo-placeholder">CMI</div>
+        {% endif %}
+      </div>
+      
+      <div class="header-content">
+        <h1>Relatório de Perícia IMESC</h1>
+        <div class="subtitle">Centro Médico Integrado</div>
+        <div class="address">Documento oficial para fins de avaliação médico-pericial</div>
+      </div>
+      
+      <div class="header-meta">
+        <div>Emitido em:</div>
+        <div class="date">{{ data_geracao }}</div>
+      </div>
+    </header>
+
+    <!-- PROTOCOLO -->
+    <div class="protocolo-container">
+      <div class="protocolo-info">
+        <div>
+          <span class="protocolo-label">Protocolo IMESC</span>
+          <div class="protocolo-number">{{ pericia.protocolo }}</div>
+        </div>
+        <div>
+          <span class="protocolo-label">Data da Perícia</span>
+          <div class="info-value">{{ pericia.data_pericia_br }}{% if pericia.hora_pericia %} às {{ pericia.hora_pericia }}{% endif %}</div>
+        </div>
+      </div>
+      <span class="status-badge status-{{ pericia.status }}">
+        {% if pericia.status == 'concluido' %}Concluído
+        {% elif pericia.status == 'aguardando_triagem' %}Aguardando Triagem
+        {% elif pericia.status == 'aguardando_medico' %}Aguardando Médico
+        {% elif pericia.status == 'cancelado' %}Cancelado
+        {% else %}{{ pericia.status | replace('_', ' ') | title }}
+        {% endif %}
+      </span>
+    </div>
+
+    <!-- DADOS DO PACIENTE -->
+    {% if paciente %}
+    <section class="section keep-together">
+      <div class="section-header">
+        <div class="section-icon teal">P</div>
+        <h2 class="section-title">Dados do Periciando</h2>
+      </div>
+      
+      <div class="paciente-card">
+        <div class="paciente-nome">{{ paciente.nome }}</div>
+        <div class="paciente-details">
+          <div class="paciente-detail">
+            <span class="info-label">CPF</span>
+            <span class="info-value">{{ paciente.cpf_formatado }}</span>
+          </div>
+          <div class="paciente-detail">
+            <span class="info-label">Data de Nascimento</span>
+            <span class="info-value">{{ paciente.data_nascimento_br }}</span>
+          </div>
+          <div class="paciente-detail">
+            <span class="info-label">Idade</span>
+            <span class="info-value">{{ paciente.idade }} anos</span>
+          </div>
+          {% if paciente.sexo %}
+          <div class="paciente-detail">
+            <span class="info-label">Sexo</span>
+            <span class="info-value">{{ 'Masculino' if paciente.sexo == 'M' else 'Feminino' }}</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- PARECER SOCIAL (TRIAGEM) -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-icon green">S</div>
+        <h2 class="section-title">Triagem Social</h2>
+        {% if pericia.data_parecer_social_br %}
+        <span class="section-date">{{ pericia.data_parecer_social_br }}</span>
+        {% endif %}
+      </div>
+      
+      <div class="parecer-container">
+        {% if assistente_social %}
+        <div class="parecer-header social">
+          <div>
+            <div class="parecer-author">{{ assistente_social.nome }}</div>
+            <div class="parecer-registro">Assistente Social</div>
+          </div>
+          <div class="parecer-registro">CRESS: {{ assistente_social.cress }}</div>
+        </div>
+        {% endif %}
+        
+        <div class="parecer-body">
+          {% if pericia.parecer_social %}
+            <p class="parecer-text">{{ pericia.parecer_social }}</p>
+          {% else %}
+            <p class="parecer-empty">Aguardando registro do parecer social.</p>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <!-- AVALIAÇÃO MÉDICA -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-icon blue">M</div>
+        <h2 class="section-title">Avaliação Médica</h2>
+        {% if pericia.data_parecer_medico_br %}
+        <span class="section-date">{{ pericia.data_parecer_medico_br }}</span>
+        {% endif %}
+      </div>
+      
+      <div class="parecer-container">
+        {% if medico %}
+        <div class="parecer-header medico">
+          <div>
+            <div class="parecer-author">Dr(a). {{ medico.nome }}</div>
+            <div class="parecer-registro">{% if medico.especialidade %}{{ medico.especialidade }}{% else %}Médico(a) Perito(a){% endif %}</div>
+          </div>
+          <div class="parecer-registro">CRM: {{ medico.crm }}</div>
+        </div>
+        {% endif %}
+        
+        <div class="parecer-body">
+          {% if pericia.parecer_medico %}
+            <p class="parecer-text">{{ pericia.parecer_medico }}</p>
+          {% else %}
+            <p class="parecer-empty">Aguardando registro do parecer médico.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Conclusão Médica -->
+      {% if pericia.conclusao_medica %}
+      <div class="conclusao-box">
+        <div class="conclusao-title">Conclusão da Perícia</div>
+        <p class="conclusao-text">{{ pericia.conclusao_medica }}</p>
+        {% if pericia.cid %}
+        <div class="cid-badge">CID-10: {{ pericia.cid }}</div>
+        {% endif %}
+      </div>
+      {% endif %}
+    </section>
+
+    <!-- OBSERVAÇÕES (se houver) -->
+    {% if pericia.observacoes %}
+    <section class="section keep-together">
+      <div class="section-header">
+        <div class="section-icon orange">O</div>
+        <h2 class="section-title">Observações</h2>
+      </div>
+      
+      <div class="observacoes-box">
+        <p class="observacoes-text">{{ pericia.observacoes }}</p>
+      </div>
+    </section>
+    {% endif %}
+  </div>
+
+  <!-- BLOCO DE ASSINATURAS + RODAPÉ (sempre no final) -->
+  <div class="footer-block">
+    {% if pericia.status == 'concluido' and medico and assistente_social %}
+    <section class="signatures-section">
+      <div class="signatures-grid">
+        <div class="signature-block">
+          <div class="signature-line">
+            <div class="signature-name">{{ assistente_social.nome }}</div>
+            <div class="signature-info">Assistente Social</div>
+            <div class="signature-info">CRESS: {{ assistente_social.cress }}</div>
+          </div>
+        </div>
+        
+        <div class="signature-block">
+          <div class="signature-line">
+            <div class="signature-name">Dr(a). {{ medico.nome }}</div>
+            <div class="signature-info">{% if medico.especialidade %}{{ medico.especialidade }}{% else %}Médico(a) Perito(a){% endif %}</div>
+            <div class="signature-info">CRM: {{ medico.crm }}</div>
+          </div>
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <footer class="document-footer">
+      <p class="footer-text">
+        <strong>Centro Médico Integrado</strong><br>
+        Documento gerado eletronicamente em {{ data_geracao }}<br>
+        Este documento é válido sem assinatura física quando gerado pelo sistema CMI.<br>
+        Para verificação de autenticidade, consulte o protocolo <strong>{{ pericia.protocolo }}</strong> junto à instituição.
+      </p>
+    </footer>
+  </div>
+
+</body>
+</html>

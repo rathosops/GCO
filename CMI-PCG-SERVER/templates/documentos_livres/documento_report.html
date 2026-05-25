@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{{ tipo_descricao }}</title>
+    <style>
+      /* ========================================
+       CONFIGURAÇÕES DE PÁGINA A4
+       ======================================== */
+      @page {
+        size: A4;
+        margin: 15mm 15mm 18mm 15mm;
+
+        @bottom-center {
+          content: "Página " counter(page) " de " counter(pages);
+          font-family: Arial, sans-serif;
+          font-size: 7.5pt;
+          color: #888;
+        }
+      }
+
+      /* ========================================
+       RESET E BASE
+       ======================================== */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 9.5pt;
+        color: #2c3e50;
+        line-height: 1.45;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        min-height: 100%;
+      }
+
+      .content-wrapper {
+        flex: 1;
+      }
+
+      /* ========================================
+       CABEÇALHO
+       ======================================== */
+      .header {
+        display: flex;
+        align-items: center;
+        padding-bottom: 10px;
+        margin-bottom: 14px;
+        border-bottom: 2.5px solid #2980b9;
+      }
+
+      .logo-area {
+        width: 55px;
+        height: 55px;
+        flex-shrink: 0;
+      }
+
+      .logo-area img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      .logo-placeholder {
+        width: 55px;
+        height: 55px;
+        background: linear-gradient(135deg, #2980b9 0%, #1a5276 100%);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: bold;
+        font-size: 11pt;
+      }
+
+      .header-content {
+        flex: 1;
+        text-align: center;
+        padding: 0 12px;
+      }
+
+      .header-content h1 {
+        font-size: 15pt;
+        font-weight: 700;
+        color: #2980b9;
+        margin-bottom: 2px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+      }
+
+      .header-content .subtitle {
+        font-size: 9pt;
+        color: #555;
+        font-weight: 500;
+      }
+
+      .header-content .address {
+        font-size: 7.5pt;
+        color: #888;
+        margin-top: 1px;
+      }
+
+      .header-meta {
+        text-align: right;
+        font-size: 7.5pt;
+        color: #888;
+        flex-shrink: 0;
+      }
+
+      .header-meta .date {
+        font-weight: 600;
+        color: #555;
+        font-size: 8pt;
+      }
+
+      /* ========================================
+       DADOS DO PACIENTE
+       ======================================== */
+      .paciente-section {
+        background: #fafafa;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 10px 14px;
+        margin-bottom: 16px;
+      }
+
+      .paciente-section .section-label {
+        font-size: 7pt;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-bottom: 4px;
+      }
+
+      .paciente-nome {
+        font-size: 12pt;
+        font-weight: 600;
+        color: #2c3e50;
+      }
+
+      /* ========================================
+       CORPO DO DOCUMENTO
+       ======================================== */
+      .documento-titulo {
+        font-size: 13pt;
+        font-weight: 700;
+        color: #2980b9;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 18px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .documento-corpo {
+        font-size: 11pt;
+        color: #2c3e50;
+        line-height: 1.7;
+        text-align: justify;
+        white-space: pre-wrap;
+        margin-bottom: 20px;
+        padding: 0 8px;
+      }
+
+      /* ========================================
+       OBSERVAÇÕES
+       ======================================== */
+      .observacoes-section {
+        margin-top: 12px;
+        padding: 8px 12px;
+        background: #fffde7;
+        border: 1px solid #fff176;
+        border-radius: 5px;
+        page-break-inside: avoid;
+        margin-bottom: 16px;
+      }
+
+      .observacoes-section .obs-title {
+        font-size: 8pt;
+        font-weight: 600;
+        color: #f57f17;
+        text-transform: uppercase;
+        letter-spacing: 0.2px;
+        margin-bottom: 4px;
+      }
+
+      .observacoes-section .obs-text {
+        font-size: 8.5pt;
+        color: #5d4037;
+        line-height: 1.4;
+        white-space: pre-wrap;
+      }
+
+      /* ========================================
+       ASSINATURA + RODAPÉ
+       ======================================== */
+      .footer-block {
+        margin-top: auto;
+        padding-top: 25px;
+        page-break-inside: avoid;
+      }
+
+      .assinatura-section {
+        text-align: center;
+        padding: 20px 0 10px;
+      }
+
+      .assinatura-linha {
+        border-top: 1px solid #333;
+        width: 280px;
+        margin: 0 auto;
+        padding-top: 8px;
+      }
+
+      .assinatura-nome {
+        font-size: 10pt;
+        font-weight: 600;
+        color: #2c3e50;
+      }
+
+      .assinatura-crm {
+        font-size: 8.5pt;
+        color: #555;
+        margin-top: 2px;
+      }
+
+      .assinatura-especialidade {
+        font-size: 8pt;
+        color: #888;
+        margin-top: 1px;
+      }
+
+      /* ========================================
+       RODAPÉ LEGAL
+       ======================================== */
+      .document-footer {
+        margin-top: 18px;
+        padding-top: 10px;
+        border-top: 1px solid #ddd;
+        text-align: center;
+      }
+
+      .footer-text {
+        font-size: 7pt;
+        color: #999;
+        line-height: 1.35;
+      }
+
+      .footer-text strong {
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="content-wrapper">
+      <!-- CABEÇALHO -->
+      <header class="header">
+        <div class="logo-area">
+          {% if logo_path %}
+          <img src="{{ logo_path }}" alt="Logo" />
+          {% else %}
+          <div class="logo-placeholder">CMI</div>
+          {% endif %}
+        </div>
+
+        <div class="header-content">
+          <h1>{{ tipo_descricao }}</h1>
+          <div class="subtitle">{{ clinica.nome }}</div>
+          {% if clinica.endereco %}
+          <div class="address">{{ clinica.endereco }}</div>
+          {% endif %}
+          {% if clinica.telefone or clinica.email %}
+          <div class="address">
+            {% if clinica.telefone %}Tel: {{ clinica.telefone }}{% endif %}
+            {% if clinica.telefone and clinica.email %} | {% endif %}
+            {% if clinica.email %}{{ clinica.email }}{% endif %}
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="header-meta">
+          <div>Emitido em:</div>
+          <div class="date">{{ data_geracao_completa }}</div>
+        </div>
+      </header>
+
+      <!-- PACIENTE -->
+      <div class="paciente-section">
+        <div class="section-label">Paciente</div>
+        <div class="paciente-nome">{{ nome_paciente }}</div>
+      </div>
+
+      <!-- CORPO DO DOCUMENTO -->
+      <div class="documento-titulo">{{ tipo_descricao }}</div>
+      <div class="documento-corpo">{{ corpo_texto }}</div>
+
+      <!-- OBSERVAÇÕES (opcional) -->
+      {% if observacoes %}
+      <div class="observacoes-section">
+        <div class="obs-title">Observações</div>
+        <div class="obs-text">{{ observacoes }}</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- ASSINATURA + RODAPÉ -->
+    <div class="footer-block">
+      {% if medico %}
+      <section class="assinatura-section">
+        <div class="assinatura-linha">
+          <div class="assinatura-nome">
+            Dr{% if medico.sexo == 'F' %}a{% endif %}. {{ medico.nome }}
+          </div>
+          <div class="assinatura-crm">CRM: {{ medico.crm }}</div>
+          {% if medico.especialidade %}
+          <div class="assinatura-especialidade">{{ medico.especialidade }}</div>
+          {% endif %}
+        </div>
+      </section>
+      {% endif %}
+
+      <footer class="document-footer">
+        <p class="footer-text">
+          <strong>{{ clinica.nome }}</strong><br />
+          {% if clinica.cnpj %}CNPJ: {{ clinica.cnpj }} | {% endif %}
+          Documento gerado eletronicamente em {{ data_geracao_completa }}<br />
+          Este documento é válido sem assinatura física quando gerado pelo sistema CMI.
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

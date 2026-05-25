@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <title>Nota Fiscal - Pagamento #{{ pagamento.id }}</title>
+    <style>
+      /* Reset simples */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 12px;
+        line-height: 1.4;
+        color: #222;
+      }
+
+      .container {
+        width: 100%;
+        padding: 16px 24px;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 10px;
+        margin-bottom: 12px;
+      }
+
+      .logo {
+        max-height: 60px;
+      }
+
+      .clinic-info h1 {
+        font-size: 18px;
+        margin-bottom: 4px;
+      }
+
+      .clinic-info p {
+        margin-bottom: 2px;
+      }
+
+      .section {
+        margin-top: 14px;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+
+      .section-title {
+        font-weight: bold;
+        font-size: 13px;
+        margin-bottom: 8px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 4px;
+      }
+
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 4px;
+      }
+
+      .col {
+        flex: 1;
+        min-width: 160px;
+        margin-right: 16px;
+      }
+
+      .label {
+        font-weight: bold;
+      }
+
+      .value {
+        margin-left: 4px;
+      }
+
+      .muted {
+        color: #777;
+      }
+
+      .totals {
+        margin-top: 10px;
+      }
+
+      .totals .row {
+        justify-content: flex-end;
+      }
+
+      .totals .label {
+        min-width: 140px;
+        text-align: right;
+      }
+
+      .footer {
+        margin-top: 18px;
+        font-size: 10px;
+        color: #777;
+        border-top: 1px solid #eee;
+        padding-top: 6px;
+        text-align: right;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header / Clínica -->
+      <div class="header">
+        <div class="clinic-info">
+          <h1>{{ clinica.nome or "Clínica" }}</h1>
+          <p>CNPJ: {{ clinica.cnpj or "—" }}</p>
+          {% if clinica.endereco %}
+          <p>{{ clinica.endereco }}</p>
+          {% endif %} {% if clinica.telefone_fixo or clinica.telefone_celular %}
+          <p>
+            {% if clinica.telefone_fixo %}Tel: {{ clinica.telefone_fixo }}{%
+            endif %} {% if clinica.telefone_celular %} {% if
+            clinica.telefone_fixo %} • {% endif %} Cel: {{
+            clinica.telefone_celular }} {% endif %}
+          </p>
+          {% endif %} {% if clinica.website %}
+          <p>Site: {{ clinica.website }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <img
+            src="{{ logo_path }}"
+            alt="Logo Clínica"
+            class="logo"
+          />
+        </div>
+      </div>
+
+      <!-- Dados da Nota -->
+      <div class="section">
+        <div class="section-title">Dados da Nota Fiscal</div>
+
+        <div class="row">
+          <div class="col">
+            <span class="label">Número:</span>
+            <span class="value">{{ pagamento.id }}</span>
+          </div>
+          <div class="col">
+            <span class="label">Data do Pagamento:</span>
+            <span class="value">{{ data_pagamento_str }}</span>
+          </div>
+          <div class="col">
+            <span class="label">Emitido em:</span>
+            <span class="value">{{ emitido_em_str }} (Horário de Brasília)</span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <span class="label">Forma de Pagamento:</span>
+            <span class="value">{{ tipo_pagamento }}</span>
+          </div>
+          {% if tipo_pessoa_pix %}
+          <div class="col">
+            <span class="label">Tipo de pessoa (PIX):</span>
+            <span class="value">
+              {% if tipo_pessoa_pix == "PF" %}Pessoa Física{% elif
+              tipo_pessoa_pix == "PJ" %}Pessoa Jurídica{% else %}{{
+              tipo_pessoa_pix }}{% endif %}
+            </span>
+          </div>
+          {% endif %} {% if pagamento.qtd_parcelas_credito %}
+          <div class="col">
+            <span class="label">Parcelas (Crédito):</span>
+            <span class="value">{{ pagamento.qtd_parcelas_credito }}</span>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <span class="label">Origem:</span>
+            <span class="value">{{ pagamento.origem }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dados do Pagador -->
+      <div class="section">
+        <div class="section-title">Dados do Pagador</div>
+
+        <div class="row">
+          <div class="col">
+            <span class="label">Tipo:</span>
+            <span class="value">{{ payer.tipo }}</span>
+          </div>
+          <div class="col">
+            <span class="label">Nome:</span>
+            <span class="value">{{ payer.nome }}</span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <span class="label"
+              >{{ payer.documento_tipo or "Documento" }}:</span
+            >
+            <span class="value">{{ payer.documento or "—" }}</span>
+          </div>
+          {% if paciente and payer.tipo != "PACIENTE" %}
+          <div class="col">
+            <span class="label">Paciente:</span>
+            <span class="value">
+              {{ paciente.nome }}
+              {% if paciente_cpf_formatado %}(CPF {{ paciente_cpf_formatado }}){% endif %}
+            </span>
+          </div>
+          {% endif %} {% if empresa %}
+          <div class="col">
+            <span class="label">Empresa:</span>
+            <span class="value"
+              >{{ empresa.nome }} (CNPJ {{ empresa.cnpj }})</span
+            >
+          </div>
+          {% endif %} {% if convenio %}
+          <div class="col">
+            <span class="label">Convênio:</span>
+            <span class="value"
+              >{{ convenio.nome }} (CNPJ {{ convenio.cnpj }})</span
+            >
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Valores -->
+      <div class="section">
+        <div class="section-title">Valores</div>
+
+        <div class="totals">
+          <div class="row">
+            <div class="col" style="flex: 0 0 auto">
+              <span class="label">Valor bruto:</span>
+              <span class="value">{{ valor_bruto_formatado }}</span>
+            </div>
+          </div>
+
+          {% if valor_desconto_formatado %}
+          <div class="row">
+            <div class="col" style="flex: 0 0 auto">
+              <span class="label">Descontos:</span>
+              <span class="value">- {{ valor_desconto_formatado }}</span>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="row">
+            <div class="col" style="flex: 0 0 auto">
+              <span class="label">Total líquido:</span>
+              <span class="value"
+                ><strong>{{ valor_liquido_formatado }}</strong></span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Observações -->
+      {% if descricao %}
+      <div class="section">
+        <div class="section-title">Observações</div>
+        <p>{{ descricao }}</p>
+      </div>
+      {% endif %}
+
+      <div class="footer">
+        <span class="muted">
+          Documento gerado eletronicamente em {{ emitido_em_str }}
+          (Horário de Brasília). Válido sem assinatura.
+        </span>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Receituário - {{ receituario.id }}</title>
+    <style>
+      /* ========================================
+       CONFIGURAÇÕES DE PÁGINA A4
+       ======================================== */
+      @page {
+        size: A4;
+        margin: 15mm 15mm 18mm 15mm;
+
+        @bottom-center {
+          content: "Página " counter(page) " de " counter(pages);
+          font-family: Arial, sans-serif;
+          font-size: 7.5pt;
+          color: #888;
+        }
+      }
+
+      /* ========================================
+       RESET E BASE
+       ======================================== */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 9.5pt;
+        color: #2c3e50;
+        line-height: 1.45;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        min-height: 100%;
+      }
+
+      .content-wrapper {
+        flex: 1;
+      }
+
+      /* ========================================
+       CABEÇALHO
+       ======================================== */
+      .header {
+        display: flex;
+        align-items: center;
+        padding-bottom: 10px;
+        margin-bottom: 14px;
+        border-bottom: 2.5px solid #2980b9;
+      }
+
+      .logo-area {
+        width: 55px;
+        height: 55px;
+        flex-shrink: 0;
+      }
+
+      .logo-area img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      .logo-placeholder {
+        width: 55px;
+        height: 55px;
+        background: linear-gradient(135deg, #2980b9 0%, #1a5276 100%);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: bold;
+        font-size: 11pt;
+      }
+
+      .header-content {
+        flex: 1;
+        text-align: center;
+        padding: 0 12px;
+      }
+
+      .header-content h1 {
+        font-size: 15pt;
+        font-weight: 700;
+        color: #2980b9;
+        margin-bottom: 2px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+      }
+
+      .header-content .subtitle {
+        font-size: 9pt;
+        color: #555;
+        font-weight: 500;
+      }
+
+      .header-content .address {
+        font-size: 7.5pt;
+        color: #888;
+        margin-top: 1px;
+      }
+
+      .header-meta {
+        text-align: right;
+        font-size: 7.5pt;
+        color: #888;
+        flex-shrink: 0;
+      }
+
+      .header-meta .date {
+        font-weight: 600;
+        color: #555;
+        font-size: 8pt;
+      }
+
+      /* ========================================
+       TIPO DE RECEITA (badge)
+       ======================================== */
+      .tipo-receita-bar {
+        background: #f0f7fd;
+        border: 1px solid #b8d4e8;
+        border-radius: 6px;
+        padding: 8px 14px;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .tipo-badge {
+        display: inline-block;
+        padding: 4px 14px;
+        border-radius: 12px;
+        font-size: 8.5pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+      }
+
+      .tipo-simples {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #a5d6a7;
+      }
+
+      .tipo-controle_especial {
+        background: #fff3e0;
+        color: #e65100;
+        border: 1px solid #ffcc80;
+      }
+
+      .tipo-antimicrobiano {
+        background: #e3f2fd;
+        color: #1565c0;
+        border: 1px solid #90caf9;
+      }
+
+      .receita-info-line {
+        font-size: 7.5pt;
+        color: #666;
+      }
+
+      .receita-info-line strong {
+        color: #444;
+      }
+
+      /* ========================================
+       DADOS DO PACIENTE
+       ======================================== */
+      .paciente-section {
+        background: #fafafa;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 10px 14px;
+        margin-bottom: 16px;
+      }
+
+      .paciente-section .section-label {
+        font-size: 7pt;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-bottom: 4px;
+      }
+
+      .paciente-nome {
+        font-size: 12pt;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 3px;
+      }
+
+      .paciente-dados {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        font-size: 8.5pt;
+        color: #555;
+      }
+
+      .paciente-dados .dado-label {
+        font-size: 7pt;
+        color: #999;
+        text-transform: uppercase;
+        display: block;
+      }
+
+      .paciente-dados .dado-value {
+        font-weight: 500;
+        color: #333;
+      }
+
+      /* ========================================
+       PRESCRIÇÃO (lista de medicamentos)
+       ======================================== */
+      .prescricao-title {
+        font-size: 10pt;
+        font-weight: 600;
+        color: #2980b9;
+        margin-bottom: 10px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #e0e0e0;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+
+      .medicamento-item {
+        margin-bottom: 12px;
+        padding: 10px 12px;
+        background: #fff;
+        border: 1px solid #e8e8e8;
+        border-left: 3px solid #2980b9;
+        border-radius: 4px;
+        page-break-inside: avoid;
+      }
+
+      .medicamento-item.amostra {
+        border-left-color: #27ae60;
+        background: #f9fdf9;
+      }
+
+      .med-header {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 4px;
+      }
+
+      .med-numero {
+        font-size: 9pt;
+        font-weight: 700;
+        color: #2980b9;
+        min-width: 22px;
+      }
+
+      .med-nome {
+        font-size: 10.5pt;
+        font-weight: 600;
+        color: #2c3e50;
+      }
+
+      .med-concentracao {
+        font-size: 9pt;
+        color: #666;
+        font-weight: 400;
+      }
+
+      .med-principio {
+        font-size: 8pt;
+        color: #888;
+        font-style: italic;
+        margin-left: 30px;
+        margin-bottom: 4px;
+      }
+
+      .med-posologia {
+        font-size: 9.5pt;
+        color: #333;
+        margin-left: 30px;
+        line-height: 1.5;
+        white-space: pre-wrap;
+      }
+
+      .med-detalhes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 4px;
+        margin-left: 30px;
+        font-size: 7.5pt;
+        color: #777;
+      }
+
+      .med-detalhes span {
+        background: #f5f5f5;
+        padding: 1px 6px;
+        border-radius: 3px;
+      }
+
+      .med-obs {
+        margin-left: 30px;
+        margin-top: 4px;
+        font-size: 8pt;
+        color: #888;
+        font-style: italic;
+      }
+
+      .amostra-badge {
+        display: inline-block;
+        background: #e8f5e9;
+        color: #2e7d32;
+        font-size: 7pt;
+        font-weight: 600;
+        padding: 1px 8px;
+        border-radius: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.2px;
+      }
+
+      /* ========================================
+       OBSERVAÇÕES / ORIENTAÇÕES
+       ======================================== */
+      .observacoes-section {
+        margin-top: 12px;
+        padding: 8px 12px;
+        background: #fffde7;
+        border: 1px solid #fff176;
+        border-radius: 5px;
+        page-break-inside: avoid;
+      }
+
+      .observacoes-section .obs-title {
+        font-size: 8pt;
+        font-weight: 600;
+        color: #f57f17;
+        text-transform: uppercase;
+        letter-spacing: 0.2px;
+        margin-bottom: 4px;
+      }
+
+      .observacoes-section .obs-text {
+        font-size: 8.5pt;
+        color: #5d4037;
+        line-height: 1.4;
+        white-space: pre-wrap;
+      }
+
+      .orientacoes-section {
+        margin-top: 10px;
+        padding: 8px 12px;
+        background: #e8f5e9;
+        border: 1px solid #a5d6a7;
+        border-radius: 5px;
+        page-break-inside: avoid;
+      }
+
+      .orientacoes-section .ori-title {
+        font-size: 8pt;
+        font-weight: 600;
+        color: #2e7d32;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+
+      .orientacoes-section .ori-text {
+        font-size: 8.5pt;
+        color: #1b5e20;
+        line-height: 1.4;
+        white-space: pre-wrap;
+      }
+
+      /* ========================================
+       BLOCO DE ASSINATURA + RODAPÉ
+       ======================================== */
+      .footer-block {
+        margin-top: auto;
+        padding-top: 25px;
+        page-break-inside: avoid;
+      }
+
+      .assinatura-section {
+        text-align: center;
+        padding: 20px 0 10px;
+      }
+
+      .assinatura-linha {
+        border-top: 1px solid #333;
+        width: 280px;
+        margin: 0 auto;
+        padding-top: 8px;
+      }
+
+      .assinatura-nome {
+        font-size: 10pt;
+        font-weight: 600;
+        color: #2c3e50;
+      }
+
+      .assinatura-crm {
+        font-size: 8.5pt;
+        color: #555;
+        margin-top: 2px;
+      }
+
+      .assinatura-especialidade {
+        font-size: 8pt;
+        color: #888;
+        margin-top: 1px;
+      }
+
+      /* ========================================
+       RODAPÉ LEGAL
+       ======================================== */
+      .document-footer {
+        margin-top: 18px;
+        padding-top: 10px;
+        border-top: 1px solid #ddd;
+        text-align: center;
+      }
+
+      .footer-text {
+        font-size: 7pt;
+        color: #999;
+        line-height: 1.35;
+      }
+
+      .footer-text strong {
+        color: #666;
+      }
+
+      .footer-validade {
+        font-size: 7.5pt;
+        color: #c0392b;
+        font-weight: 600;
+        margin-top: 4px;
+      }
+
+      /* ========================================
+       UTILITÁRIOS
+       ======================================== */
+      .keep-together {
+        page-break-inside: avoid;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="content-wrapper">
+      <!-- ═══════════════════════════════════════════════════════════════
+         CABEÇALHO
+         ═══════════════════════════════════════════════════════════════ -->
+      <header class="header">
+        <div class="logo-area">
+          {% if logo_path %}
+          <img src="{{ logo_path }}" alt="Logo" />
+          {% else %}
+          <div class="logo-placeholder">CMI</div>
+          {% endif %}
+        </div>
+
+        <div class="header-content">
+          <h1>Receituário Médico</h1>
+          <div class="subtitle">{{ clinica.nome }}</div>
+          {% if clinica.endereco %}
+          <div class="address">{{ clinica.endereco }}</div>
+          {% endif %} {% if clinica.telefone or clinica.email %}
+          <div class="address">
+            {% if clinica.telefone %}Tel: {{ clinica.telefone }}{% endif %} {%
+            if clinica.telefone and clinica.email %} | {% endif %} {% if
+            clinica.email %}{{ clinica.email }}{% endif %}
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="header-meta">
+          <div>Emitido em:</div>
+          <div class="date">{{ data_geracao }}</div>
+          <div style="margin-top: 4px">Receita nº</div>
+          <div class="date">{{ receituario.id }}</div>
+        </div>
+      </header>
+
+      <!-- ═══════════════════════════════════════════════════════════════
+         TIPO DE RECEITA
+         ═══════════════════════════════════════════════════════════════ -->
+      <div class="tipo-receita-bar">
+        <div>
+          <span class="tipo-badge tipo-{{ receituario.tipo_receita | lower }}">
+            {{ receituario.tipo_descricao }}
+          </span>
+          {% if receituario.numero_vias > 1 %}
+          <span style="font-size: 7.5pt; color: #888; margin-left: 8px">
+            ({{ receituario.numero_vias }}ª via)
+          </span>
+          {% endif %}
+        </div>
+        <div class="receita-info-line">
+          <strong>Data:</strong> {{ receituario.data_prescricao_br }}
+          &nbsp;|&nbsp; <strong>Validade:</strong> {{
+          receituario.data_validade_br }} ({{ receituario.validade_dias }} dias)
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════════════
+         DADOS DO PACIENTE
+         ═══════════════════════════════════════════════════════════════ -->
+      {% if paciente %}
+      <div class="paciente-section">
+        <div class="section-label">Paciente</div>
+        <div class="paciente-nome">{{ paciente.nome }}</div>
+        <div class="paciente-dados">
+          <div>
+            <span class="dado-label">CPF</span>
+            <span class="dado-value">{{ paciente.cpf_formatado }}</span>
+          </div>
+          {% if paciente.data_nascimento_br %}
+          <div>
+            <span class="dado-label">Data de Nascimento</span>
+            <span class="dado-value">{{ paciente.data_nascimento_br }}</span>
+          </div>
+          {% endif %} {% if paciente.idade is not none %}
+          <div>
+            <span class="dado-label">Idade</span>
+            <span class="dado-value">{{ paciente.idade }} anos</span>
+          </div>
+          {% endif %} {% if paciente.sexo %}
+          <div>
+            <span class="dado-label">Sexo</span>
+            <span class="dado-value"
+              >{{ 'Masculino' if paciente.sexo == 'M' else 'Feminino' }}</span
+            >
+          </div>
+          {% endif %} {% if paciente.endereco %}
+          <div>
+            <span class="dado-label">Endereço</span>
+            <span class="dado-value">{{ paciente.endereco }}</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- ═══════════════════════════════════════════════════════════════
+         PRESCRIÇÃO (MEDICAMENTOS)
+         ═══════════════════════════════════════════════════════════════ -->
+      <div class="prescricao-title">Prescrição</div>
+
+      {% for item in itens %}
+      <div
+        class="medicamento-item {% if item.is_amostra_gratis %}amostra{% endif %}"
+      >
+        <div class="med-header">
+          <span class="med-numero">{{ item.ordem }}.</span>
+          <span class="med-nome">{{ item.nome_medicamento }}</span>
+          {% if item.concentracao %}
+          <span class="med-concentracao">{{ item.concentracao }}</span>
+          {% endif %} {% if item.is_amostra_gratis %}
+          <span class="amostra-badge">Amostra Grátis</span>
+          {% endif %}
+        </div>
+
+        {% if item.principio_ativo %}
+        <div class="med-principio">{{ item.principio_ativo }}</div>
+        {% endif %}
+
+        <div class="med-posologia">{{ item.posologia }}</div>
+
+        {% if item.via_administracao or item.quantidade or item.duracao_dias or
+        item.uso_continuo or item.forma_farmaceutica %}
+        <div class="med-detalhes">
+          {% if item.forma_farmaceutica %}
+          <span>{{ item.forma_farmaceutica }}</span>
+          {% endif %} {% if item.via_administracao %}
+          <span>Via: {{ item.via_administracao }}</span>
+          {% endif %} {% if item.quantidade %}
+          <span
+            >Qtd: {{ item.quantidade }}{% if item.unidade_quantidade %} {{
+            item.unidade_quantidade }}{% endif %}</span
+          >
+          {% endif %} {% if item.duracao_dias %}
+          <span>Duração: {{ item.duracao_dias }} dias</span>
+          {% endif %} {% if item.uso_continuo %}
+          <span style="color: #c0392b; font-weight: 600">Uso contínuo</span>
+          {% endif %}
+        </div>
+        {% endif %} {% if item.observacoes %}
+        <div class="med-obs">Obs: {{ item.observacoes }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      <!-- ═══════════════════════════════════════════════════════════════
+         OBSERVAÇÕES / ORIENTAÇÕES
+         ═══════════════════════════════════════════════════════════════ -->
+      {% if receituario.observacoes_gerais %}
+      <div class="observacoes-section">
+        <div class="obs-title">Observações</div>
+        <div class="obs-text">{{ receituario.observacoes_gerais }}</div>
+      </div>
+      {% endif %} {% if receituario.orientacoes_paciente %}
+      <div class="orientacoes-section">
+        <div class="ori-title">Orientações ao Paciente</div>
+        <div class="ori-text">{{ receituario.orientacoes_paciente }}</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+       ASSINATURA + RODAPÉ (sempre no final)
+       ═══════════════════════════════════════════════════════════════════ -->
+    <div class="footer-block">
+      {% if medico %}
+      <section class="assinatura-section">
+        <div class="assinatura-linha">
+          <div class="assinatura-nome">
+            Dr{% if medico.sexo == 'F' %}a{% endif %}. {{ medico.nome }}
+          </div>
+          <div class="assinatura-crm">CRM: {{ medico.crm }}</div>
+          {% if medico.especialidade %}
+          <div class="assinatura-especialidade">{{ medico.especialidade }}</div>
+          {% endif %}
+        </div>
+      </section>
+      {% endif %}
+
+      <footer class="document-footer">
+        <p class="footer-validade">
+          Esta receita é válida até {{ receituario.data_validade_br }} ({{
+          receituario.validade_dias }} dias a partir da emissão).
+        </p>
+        <p class="footer-text">
+          <strong>{{ clinica.nome }}</strong><br />
+          {% if clinica.cnpj %}CNPJ: {{ clinica.cnpj }} | {% endif %} Documento
+          gerado eletronicamente em {{ data_geracao }}<br />
+          Este documento é válido sem assinatura física quando gerado pelo
+          sistema CMI. {% if receituario.tipo_receita == 'CONTROLE_ESPECIAL' %}
+          <br /><strong
+            >Receita de Controle Especial – Reter a 2ª via na farmácia (Portaria
+            SVS/MS 344/1998).</strong
+          >
+          {% elif receituario.tipo_receita == 'ANTIMICROBIANO' %}
+          <br /><strong
+            >Receita de Antimicrobiano – Reter a 2ª via na farmácia (RDC
+            20/2011). Validade: 10 dias.</strong
+          >
+          {% endif %}
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

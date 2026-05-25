@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Documentos Livres - CMI</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+      color: #2c3e50;
+      min-height: 100vh;
+    }
+
+    /* ── Layout ───────────────────────────────────── */
+    .page-header {
+      background: linear-gradient(135deg, #2980b9 0%, #1a5276 100%);
+      color: #fff;
+      padding: 20px 24px;
+      text-align: center;
+    }
+
+    .page-header h1 { font-size: 1.4rem; font-weight: 600; }
+    .page-header p { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }
+
+    .container {
+      max-width: 720px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    /* ── Card ─────────────────────────────────────── */
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #2980b9;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #ebf5fb;
+    }
+
+    /* ── Form Elements ────────────────────────────── */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.2px;
+    }
+
+    .form-group label .required {
+      color: #e74c3c;
+      margin-left: 2px;
+    }
+
+    input[type="text"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      color: #2c3e50;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #2980b9;
+      box-shadow: 0 0 0 3px rgba(41,128,185,0.1);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 180px;
+      line-height: 1.6;
+    }
+
+    textarea.obs {
+      min-height: 80px;
+    }
+
+    /* ── Tipo Selector ────────────────────────────── */
+    .tipo-selector {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .tipo-btn {
+      flex: 1;
+      padding: 14px 16px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .tipo-btn:hover { border-color: #2980b9; background: #f7fbfe; }
+
+    .tipo-btn.active {
+      border-color: #2980b9;
+      background: #ebf5fb;
+      color: #2980b9;
+    }
+
+    .tipo-btn .tipo-icon { font-size: 1.5rem; display: block; margin-bottom: 4px; }
+    .tipo-btn .tipo-label { font-size: 0.85rem; font-weight: 600; }
+
+    /* ── Médico Select ────────────────────────────── */
+    .medico-info {
+      font-size: 0.8rem;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    /* ── Buttons ──────────────────────────────────── */
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+
+    .btn {
+      padding: 11px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: #2980b9;
+      color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #1a6fa0;
+    }
+
+    .btn-secondary {
+      background: #ecf0f1;
+      color: #555;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: #dfe6e9;
+    }
+
+    /* ── Toast ─────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: #fff;
+      z-index: 1000;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.3s;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast.error { background: #e74c3c; }
+    .toast.success { background: #27ae60; }
+    .toast.info { background: #2980b9; }
+
+    /* ── Spinner ───────────────────────────────────── */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Responsive ────────────────────────────────── */
+    @media (max-width: 480px) {
+      .tipo-selector { flex-direction: column; }
+      .actions { flex-direction: column; }
+      .btn { width: 100%; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <h1>Documentos Livres</h1>
+    <p>Atestados e receitas sem cadastro no sistema</p>
+  </div>
+
+  <div class="container">
+    <!-- Tipo de Documento -->
+    <div class="card">
+      <div class="card-title">Tipo de Documento</div>
+      <div class="tipo-selector">
+        <button class="tipo-btn active" data-tipo="ATESTADO" type="button">
+          <span class="tipo-icon">📋</span>
+          <span class="tipo-label">Atestado Médico</span>
+        </button>
+        <button class="tipo-btn" data-tipo="RECEITA" type="button">
+          <span class="tipo-icon">💊</span>
+          <span class="tipo-label">Receita Médica</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Paciente -->
+    <div class="card">
+      <div class="card-title">Paciente</div>
+      <div class="form-group">
+        <label>Nome completo <span class="required">*</span></label>
+        <input type="text" id="nome_paciente" placeholder="Nome do paciente" autocomplete="off" />
+      </div>
+    </div>
+
+    <!-- Conteúdo -->
+    <div class="card">
+      <div class="card-title" id="corpo-title">Conteúdo do Atestado</div>
+      <div class="form-group">
+        <label id="corpo-label">Texto do atestado <span class="required">*</span></label>
+        <textarea id="corpo_texto" placeholder="Digite o conteúdo do documento..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Observações (opcional)</label>
+        <textarea id="observacoes" class="obs" placeholder="Observações adicionais..."></textarea>
+      </div>
+    </div>
+
+    <!-- Médico -->
+    <div class="card">
+      <div class="card-title">Médico Responsável</div>
+      <div class="form-group">
+        <label>Selecione o médico <span class="required">*</span></label>
+        <select id="crm_medico">
+          <option value="">Carregando médicos...</option>
+        </select>
+        <div class="medico-info" id="medico-info"></div>
+      </div>
+    </div>
+
+    <!-- Ações -->
+    <div class="card">
+      <div class="actions">
+        <button class="btn btn-secondary" id="btn-limpar" type="button">
+          Limpar
+        </button>
+        <button class="btn btn-primary" id="btn-gerar" type="button">
+          Gerar PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    /* ── Estado ──────────────────────────────────── */
+    let tipoDocumento = 'ATESTADO';
+    let medicos = [];
+    let gerando = false;
+
+    /* ── Elementos ───────────────────────────────── */
+    const elNome       = document.getElementById('nome_paciente');
+    const elCorpo      = document.getElementById('corpo_texto');
+    const elObs        = document.getElementById('observacoes');
+    const elMedico     = document.getElementById('crm_medico');
+    const elMedicoInfo = document.getElementById('medico-info');
+    const elBtnGerar   = document.getElementById('btn-gerar');
+    const elBtnLimpar  = document.getElementById('btn-limpar');
+    const elCorpoTitle = document.getElementById('corpo-title');
+    const elCorpoLabel = document.getElementById('corpo-label');
+    const elToast      = document.getElementById('toast');
+
+    const LABELS = {
+      ATESTADO: { title: 'Conteúdo do Atestado', label: 'Texto do atestado' },
+      RECEITA:  { title: 'Conteúdo da Receita',  label: 'Texto da receita' },
+    };
+
+    /* ── Tipo Selector ───────────────────────────── */
+    document.querySelectorAll('.tipo-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelector('.tipo-btn.active')?.classList.remove('active');
+        btn.classList.add('active');
+        tipoDocumento = btn.dataset.tipo;
+        elCorpoTitle.textContent = LABELS[tipoDocumento].title;
+        elCorpoLabel.innerHTML = LABELS[tipoDocumento].label + ' <span class="required">*</span>';
+      });
+    });
+
+    /* ── Carregar Médicos ────────────────────────── */
+    async function carregarMedicos() {
+      try {
+        const res = await fetch('/documentos-livres/medicos');
+        if (!res.ok) throw new Error('Erro ao carregar médicos');
+        medicos = await res.json();
+
+        elMedico.innerHTML = '<option value="">-- Selecione --</option>';
+        medicos.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m.crm;
+          opt.textContent = `Dr${m.sexo === 'F' ? 'a' : ''}. ${m.nome} — CRM ${m.crm}`;
+          elMedico.appendChild(opt);
+        });
+      } catch (err) {
+        elMedico.innerHTML = '<option value="">Erro ao carregar médicos</option>';
+        showToast(err.message, 'error');
+      }
+    }
+
+    /* ── Médico Info ──────────────────────────────── */
+    elMedico.addEventListener('change', () => {
+      const crm = parseInt(elMedico.value);
+      const m = medicos.find(x => x.crm === crm);
+      elMedicoInfo.textContent = m?.especialidade
+        ? `Especialidade: ${m.especialidade}`
+        : '';
+    });
+
+    /* ── Validação ───────────────────────────────── */
+    function validar() {
+      if (!elNome.value.trim()) return 'Preencha o nome do paciente';
+      if (!elCorpo.value.trim()) return 'Preencha o conteúdo do documento';
+      if (!elMedico.value) return 'Selecione o médico responsável';
+      return null;
+    }
+
+    /* ── Gerar PDF ───────────────────────────────── */
+    elBtnGerar.addEventListener('click', async () => {
+      const erro = validar();
+      if (erro) return showToast(erro, 'error');
+      if (gerando) return;
+
+      gerando = true;
+      elBtnGerar.disabled = true;
+      elBtnGerar.innerHTML = '<span class="spinner"></span>Gerando...';
+
+      try {
+        const payload = {
+          tipo_documento: tipoDocumento,
+          nome_paciente: elNome.value.trim(),
+          corpo_texto: elCorpo.value.trim(),
+          observacoes: elObs.value.trim() || null,
+          crm_medico: parseInt(elMedico.value),
+        };
+
+        const res = await fetch('/documentos-livres/gerar-pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || 'Erro ao gerar PDF');
+        }
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        showToast('PDF gerado com sucesso!', 'success');
+
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        gerando = false;
+        elBtnGerar.disabled = false;
+        elBtnGerar.textContent = 'Gerar PDF';
+      }
+    });
+
+    /* ── Limpar ───────────────────────────────────── */
+    elBtnLimpar.addEventListener('click', () => {
+      elNome.value = '';
+      elCorpo.value = '';
+      elObs.value = '';
+      elMedico.value = '';
+      elMedicoInfo.textContent = '';
+      showToast('Formulário limpo', 'info');
+    });
+
+    /* ── Toast ────────────────────────────────────── */
+    function showToast(msg, type) {
+      elToast.textContent = msg;
+      elToast.className = `toast ${type} show`;
+      setTimeout(() => elToast.classList.remove('show'), 3500);
+    }
+
+    /* ── Atalho: Ctrl+Enter → Gerar ──────────────── */
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        elBtnGerar.click();
+      }
+    });
+
+    /* ── Init ─────────────────────────────────────── */
+    carregarMedicos();
+  </script>
+</body>
+</html>

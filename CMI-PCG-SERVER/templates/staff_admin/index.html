@@ -1,0 +1,856 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>CMI - Admin de Usuários</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='dev_admin.css') }}"
+    />
+    <style>
+      .user-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 0.75rem;
+      }
+      .user-card {
+        position: relative;
+        border-radius: var(--radius-md);
+        padding: 0.8rem 0.9rem;
+        border: 1px solid rgba(30, 64, 175, 0.3);
+        background: rgba(2, 6, 23, 0.85);
+        cursor: pointer;
+        transition:
+          border-color 0.15s ease,
+          transform 0.08s ease,
+          box-shadow 0.15s ease;
+      }
+      .user-card:hover {
+        border-color: var(--accent);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
+      }
+      .user-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        margin-bottom: 0.4rem;
+      }
+      .user-card-name {
+        font-weight: 600;
+        font-size: 0.92rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.12rem 0.5rem;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .badge-master {
+        background: rgba(234, 179, 8, 0.15);
+        color: #eab308;
+        border: 1px solid rgba(234, 179, 8, 0.3);
+      }
+      .badge-medico {
+        background: rgba(34, 197, 94, 0.12);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.25);
+      }
+      .badge-atendente {
+        background: rgba(59, 130, 246, 0.12);
+        color: #60a5fa;
+        border: 1px solid rgba(59, 130, 246, 0.25);
+      }
+      .badge-enfermeiro {
+        background: rgba(168, 85, 247, 0.12);
+        color: #a855f7;
+        border: 1px solid rgba(168, 85, 247, 0.25);
+      }
+      .badge-financeiro {
+        background: rgba(236, 72, 153, 0.12);
+        color: #ec4899;
+        border: 1px solid rgba(236, 72, 153, 0.25);
+      }
+      .badge-default {
+        background: rgba(100, 116, 139, 0.12);
+        color: #94a3b8;
+        border: 1px solid rgba(100, 116, 139, 0.25);
+      }
+      .perm-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+        margin-top: 0.35rem;
+      }
+      .perm-tag {
+        font-size: 0.68rem;
+        padding: 0.08rem 0.4rem;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid rgba(51, 65, 85, 0.5);
+        color: var(--text-muted);
+      }
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(6px);
+        justify-content: center;
+        align-items: center;
+      }
+      .modal-overlay.active {
+        display: flex;
+      }
+      .modal-content {
+        background: #0b1120;
+        border: 1px solid rgba(30, 64, 175, 0.4);
+        border-radius: var(--radius-lg);
+        padding: 1.2rem 1.4rem;
+        width: min(520px, 92vw);
+        max-height: 85vh;
+        overflow-y: auto;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+        position: relative;
+      }
+      .modal-close {
+        position: absolute;
+        top: 0.6rem;
+        right: 0.8rem;
+        background: none;
+        border: none;
+        color: var(--text-soft);
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0.2rem 0.4rem;
+        border-radius: 0.4rem;
+      }
+      .modal-close:hover {
+        color: var(--text-main);
+      }
+      .modal-title {
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin: 0 0 0.8rem;
+      }
+      .filter-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.8rem;
+      }
+      .filter-bar input,
+      .filter-bar select {
+        padding: 0.35rem 0.55rem;
+        border-radius: 0.6rem;
+        border: 1px solid rgba(30, 64, 175, 0.6);
+        background: #020617;
+        color: var(--text-main);
+        font-size: 0.83rem;
+        outline: none;
+      }
+      .filter-bar input:focus,
+      .filter-bar select:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.65);
+      }
+      .filter-bar input {
+        flex: 1;
+        min-width: 180px;
+      }
+      .stats-bar {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.8rem;
+      }
+      .stat-chip {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid rgba(51, 65, 85, 0.5);
+      }
+      .stat-chip strong {
+        color: var(--text-main);
+      }
+      .stat-chip span {
+        color: var(--text-muted);
+      }
+      .radio-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+      }
+      .radio-option {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        padding: 0.5rem 0.6rem;
+        border-radius: 0.6rem;
+        border: 1px solid rgba(30, 64, 175, 0.3);
+        cursor: pointer;
+        transition:
+          border-color 0.12s ease,
+          background 0.12s ease;
+      }
+      .radio-option:hover {
+        border-color: rgba(59, 130, 246, 0.5);
+        background: rgba(59, 130, 246, 0.05);
+      }
+      .radio-option.selected {
+        border-color: var(--accent);
+        background: rgba(59, 130, 246, 0.08);
+      }
+      .radio-option input[type="radio"] {
+        margin-top: 0.15rem;
+        accent-color: var(--accent);
+      }
+      .radio-option-label {
+        font-size: 0.88rem;
+        font-weight: 500;
+        display: block;
+      }
+      .radio-option-desc {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        display: block;
+        margin-top: 0.1rem;
+      }
+      .confirm-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.6rem;
+        padding: 0.5rem;
+        border-radius: 0.6rem;
+        background: rgba(220, 38, 38, 0.08);
+        border: 1px solid rgba(220, 38, 38, 0.3);
+      }
+      .confirm-bar .small {
+        flex: 1;
+        color: #fca5a5;
+      }
+      .debug-box {
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(234, 179, 8, 0.3);
+        border-radius: 0.6rem;
+        padding: 0.6rem 0.7rem;
+        font-size: 0.75rem;
+        font-family: monospace;
+        white-space: pre-wrap;
+        color: #fde68a;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      :root[data-theme="light"] .user-card {
+        background: #fff;
+        border-color: var(--border-subtle);
+      }
+      :root[data-theme="light"] .modal-content {
+        background: #fff;
+        border-color: var(--border-subtle);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>CMI Admin — Gestão de Usuários</h1>
+        <span class="small muted"
+          >Acesso restrito: somente administradores master</span
+        >
+      </div>
+      <div class="flex">
+        <button class="btn secondary btn-icon" id="btn-theme" type="button">
+          ☾
+        </button>
+        <a
+          href="/dev-admin/"
+          class="btn secondary"
+          style="text-decoration: none"
+          >← Dev Admin</a
+        >
+        <div id="login-status" class="small muted">Não autenticado</div>
+      </div>
+    </header>
+
+    <main style="max-width: 1100px; margin: 0 auto; padding: 1rem 1.2rem">
+      <!-- DEBUG -->
+      <div class="card" id="debug-card">
+        <div class="card-header">
+          <h3>Debug: Autenticadores no banco</h3>
+          <button class="btn secondary" id="btn-debug-refresh">
+            Atualizar
+          </button>
+        </div>
+        <div class="small muted mt-1">
+          Carrega via <code>/devtools/auth/debug</code> (sem JWT). Verifique se
+          seu usuário tem <code>tipo="admin"</code>.
+        </div>
+        <div id="debug-content" class="debug-box mt-2">Carregando...</div>
+        <div class="small muted mt-1">
+          CLI rápido:
+          <code>docker exec -it cmi-pcg-server-app flask auth list-users</code>
+        </div>
+      </div>
+
+      <!-- AUTH -->
+      <div class="card" id="auth-card">
+        <h3>Autenticação</h3>
+        <div class="flex">
+          <div class="field" style="flex: 1; min-width: 160px">
+            <label for="auth-user">Usuário</label
+            ><input id="auth-user" type="text" />
+          </div>
+          <div class="field" style="flex: 1; min-width: 160px">
+            <label for="auth-pass">Senha</label
+            ><input id="auth-pass" type="password" />
+          </div>
+          <button class="btn" id="btn-login" style="align-self: flex-end">
+            Login
+          </button>
+        </div>
+        <div class="small mt-1" id="auth-msg"></div>
+        <div
+          id="login-debug"
+          class="debug-box mt-2"
+          style="display: none"
+        ></div>
+      </div>
+
+      <div id="stats-bar" class="stats-bar" style="display: none"></div>
+
+      <!-- USERS -->
+      <div class="card" id="users-panel" style="display: none">
+        <div class="card-header">
+          <h3>Usuários</h3>
+          <button class="btn" id="btn-new-user">+ Novo usuário</button>
+        </div>
+        <div class="filter-bar mt-2">
+          <input id="filter-search" type="text" placeholder="Buscar..." />
+          <select id="filter-tipo">
+            <option value="">Todos</option>
+          </select>
+          <button class="btn secondary" id="btn-refresh">Atualizar</button>
+        </div>
+        <div id="users-grid" class="user-grid"></div>
+        <div class="small muted mt-2" id="users-meta"></div>
+      </div>
+
+      <!-- MODAL EDIT -->
+      <div class="modal-overlay" id="modal-edit">
+        <div class="modal-content">
+          <button class="modal-close" id="modal-edit-close">&times;</button>
+          <h3 class="modal-title" id="modal-edit-title">Editar</h3>
+          <div class="field">
+            <label for="edit-usuario">Identificador</label
+            ><input id="edit-usuario" type="text" />
+          </div>
+          <div class="field">
+            <label>Tipo / Nível de Acesso</label>
+            <div class="radio-group" id="edit-tipo-group"></div>
+          </div>
+          <div class="flex mt-2">
+            <button class="btn" id="btn-save-edit">Salvar</button
+            ><button class="btn secondary" id="btn-cancel-edit">
+              Cancelar
+            </button>
+          </div>
+          <div
+            class="confirm-bar mt-2"
+            id="delete-confirm"
+            style="display: none"
+          >
+            <div class="small">Excluir permanentemente?</div>
+            <button class="btn danger" id="btn-confirm-delete">Confirmar</button
+            ><button class="btn secondary" id="btn-cancel-delete">Não</button>
+          </div>
+          <div class="flex mt-2">
+            <button
+              class="btn danger"
+              id="btn-delete-user"
+              style="font-size: 0.78rem"
+            >
+              Excluir usuário
+            </button>
+          </div>
+          <div class="small mt-1" id="edit-msg"></div>
+          <h4 class="small-title mt-3">Permissões deste perfil</h4>
+          <div class="perm-list" id="edit-perms"></div>
+        </div>
+      </div>
+
+      <!-- MODAL CREATE -->
+      <div class="modal-overlay" id="modal-create">
+        <div class="modal-content">
+          <button class="modal-close" id="modal-create-close">&times;</button>
+          <h3 class="modal-title">Criar Novo Usuário</h3>
+          <div class="field">
+            <label for="new-usuario">Identificador</label
+            ><input id="new-usuario" type="text" />
+          </div>
+          <div class="field">
+            <label for="new-senha">Senha</label
+            ><input
+              id="new-senha"
+              type="password"
+              placeholder="Mín. 6 caracteres"
+            />
+          </div>
+          <div class="field">
+            <label>Tipo</label>
+            <div class="radio-group" id="create-tipo-group"></div>
+          </div>
+          <div class="flex mt-2">
+            <button class="btn" id="btn-save-create">Criar</button
+            ><button class="btn secondary" id="btn-cancel-create">
+              Cancelar
+            </button>
+          </div>
+          <div class="small mt-1" id="create-msg"></div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      let accessToken = null,
+        editingUserId = null,
+        tiposCache = [];
+      const THEME_KEY = "devAdminTheme";
+      function authHeaders() {
+        const h = { "Content-Type": "application/json" };
+        if (accessToken) h["Authorization"] = `Bearer ${accessToken}`;
+        return h;
+      }
+      function applyTheme(t) {
+        document.documentElement.dataset.theme = t;
+        try {
+          localStorage.setItem(THEME_KEY, t);
+        } catch (_) {}
+        document.getElementById("btn-theme").textContent =
+          t === "light" ? "☀︎" : "☾";
+      }
+      (function () {
+        let s = null;
+        try {
+          s = localStorage.getItem(THEME_KEY);
+        } catch (_) {}
+        applyTheme(s === "light" ? "light" : "dark");
+        document.getElementById("btn-theme").addEventListener("click", () => {
+          const c = document.documentElement.dataset.theme || "dark";
+          applyTheme(c === "dark" ? "light" : "dark");
+        });
+      })();
+      function badgeClass(t) {
+        return (
+          {
+            admin: "badge-master",
+            medico: "badge-medico",
+            atendente: "badge-atendente",
+            enfermeiro: "badge-enfermeiro",
+            financeiro: "badge-financeiro",
+          }[t] || "badge-default"
+        );
+      }
+
+      // Debug
+      async function loadDebugUsers() {
+        const el = document.getElementById("debug-content");
+        el.textContent = "Carregando...";
+        try {
+          const res = await fetch("/devtools/auth/debug");
+          const data = await res.json();
+          if (!res.ok) {
+            el.textContent = `Erro: ${data.error}`;
+            return;
+          }
+          const lines = [`Total: ${data.total} usuário(s)\n`];
+          for (const u of data.users || []) {
+            const m = u.is_master ? " ★ MASTER" : "";
+            const f = u.senha_format === "argon2" ? "argon2" : "⚠ PLAINTEXT";
+            lines.push(
+              `  #${u.id}  ${u.usuario.padEnd(25)}  tipo=${JSON.stringify(u.tipo).padEnd(14)}  is_master=${u.is_master}${m}  senha=${f}`,
+            );
+          }
+          el.textContent = lines.join("\n");
+          const admin = (data.users || []).find((u) => u.is_master);
+          if (admin) document.getElementById("auth-user").value = admin.usuario;
+        } catch (e) {
+          el.textContent = `Erro: ${e.message}`;
+        }
+      }
+      document
+        .getElementById("btn-debug-refresh")
+        .addEventListener("click", loadDebugUsers);
+
+      // Login
+      document
+        .getElementById("btn-login")
+        .addEventListener("click", async () => {
+          const user = document.getElementById("auth-user").value.trim();
+          const pass = document.getElementById("auth-pass").value;
+          const msg = document.getElementById("auth-msg");
+          const dbg = document.getElementById("login-debug");
+          msg.textContent = "Autenticando...";
+          msg.style.color = "";
+          dbg.style.display = "none";
+          try {
+            const res = await fetch("/auth/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: user, senha: pass }),
+            });
+            const data = await res.json();
+            dbg.style.display = "block";
+            dbg.textContent = `HTTP ${res.status}\nuser.is_master: ${data.user?.is_master}\nuser.role.slug: ${data.user?.role?.slug}\n\n${JSON.stringify(data.user, null, 2)}`;
+            if (!res.ok) {
+              msg.textContent = data.error || "Erro";
+              msg.style.color = "#f97316";
+              return;
+            }
+            accessToken = data.access_token;
+            if (!data.user || data.user.is_master !== true) {
+              msg.textContent = `Acesso negado: is_master=${data.user?.is_master}. Use CLI: flask auth promote --usuario ${user} --tipo admin`;
+              msg.style.color = "#f97316";
+              accessToken = null;
+              return;
+            }
+            msg.textContent = "Autenticado como master!";
+            msg.style.color = "#22c55e";
+            document.getElementById("login-status").textContent =
+              `Logado: ${user} ★`;
+            document.getElementById("auth-card").style.display = "none";
+            document.getElementById("debug-card").style.display = "none";
+            document.getElementById("users-panel").style.display = "block";
+            document.getElementById("stats-bar").style.display = "flex";
+            await loadTipos();
+            await loadUsers();
+            await loadStats();
+          } catch (e) {
+            msg.textContent = `Erro: ${e.message}`;
+            msg.style.color = "#f97316";
+          }
+        });
+
+      // Tipos
+      async function loadTipos() {
+        try {
+          const res = await fetch("/admin/users/tipos", {
+            headers: authHeaders(),
+          });
+          const data = await res.json();
+          tiposCache = data.tipos || [];
+          const sel = document.getElementById("filter-tipo");
+          sel.innerHTML = '<option value="">Todos</option>';
+          tiposCache.forEach((t) => {
+            sel.innerHTML += `<option value="${t.value}">${t.label}</option>`;
+          });
+          renderRadios("edit-tipo-group");
+          renderRadios("create-tipo-group");
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      function renderRadios(id) {
+        const c = document.getElementById(id);
+        c.innerHTML = tiposCache
+          .map(
+            (t) =>
+              `<label class="radio-option" data-value="${t.value}"><input type="radio" name="${id}" value="${t.value}" /><div><span class="radio-option-label">${t.label}${t.is_master ? " ★" : ""}</span><span class="radio-option-desc">${t.descricao}</span></div></label>`,
+          )
+          .join("");
+        c.querySelectorAll(".radio-option").forEach((o) => {
+          o.addEventListener("click", () => {
+            c.querySelectorAll(".radio-option").forEach((x) =>
+              x.classList.remove("selected"),
+            );
+            o.classList.add("selected");
+            o.querySelector("input").checked = true;
+          });
+        });
+      }
+
+      // Stats
+      async function loadStats() {
+        try {
+          const res = await fetch("/admin/users/stats", {
+            headers: authHeaders(),
+          });
+          const d = await res.json();
+          const bar = document.getElementById("stats-bar");
+          bar.innerHTML = `<div class="stat-chip"><strong>${d.total}</strong><span>total</span></div>`;
+          (d.por_tipo || []).forEach((t) => {
+            bar.innerHTML += `<div class="stat-chip"><strong>${t.count}</strong><span>${t.label} (${t.pct}%)</span></div>`;
+          });
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // Users
+      async function loadUsers() {
+        const grid = document.getElementById("users-grid"),
+          meta = document.getElementById("users-meta");
+        const s = document.getElementById("filter-search").value.trim(),
+          t = document.getElementById("filter-tipo").value;
+        grid.innerHTML = '<div class="small muted">Carregando...</div>';
+        const p = new URLSearchParams();
+        if (s) p.set("search", s);
+        if (t) p.set("tipo", t);
+        try {
+          const res = await fetch(`/admin/users?${p}`, {
+            headers: authHeaders(),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            grid.innerHTML = `<div class="small" style="color:#f97316">${data.error || "Erro " + res.status}</div>`;
+            return;
+          }
+          const users = data.users || [];
+          meta.textContent = `${users.length} usuário(s)`;
+          if (!users.length) {
+            grid.innerHTML =
+              '<div class="small muted">Nenhum encontrado.</div>';
+            return;
+          }
+          grid.innerHTML = users
+            .map(
+              (u) =>
+                `<div class="user-card" onclick="openEdit(${u.id})"><div class="user-card-header"><div class="user-card-name">${u.usuario}</div><span class="badge ${badgeClass(u.tipo)}">${u.tipo_label}</span></div><div class="perm-list">${(
+                  u.permissions || []
+                )
+                  .slice(0, 6)
+                  .map((p) => `<span class="perm-tag">${p}</span>`)
+                  .join(
+                    "",
+                  )}${(u.permissions || []).length > 6 ? `<span class="perm-tag">+${u.permissions.length - 6}</span>` : ""}</div></div>`,
+            )
+            .join("");
+        } catch (e) {
+          grid.innerHTML = `<div class="small" style="color:#f97316">${e.message}</div>`;
+        }
+      }
+      document
+        .getElementById("btn-refresh")
+        .addEventListener("click", loadUsers);
+      document
+        .getElementById("filter-search")
+        .addEventListener("keyup", (e) => {
+          if (e.key === "Enter") loadUsers();
+        });
+      document
+        .getElementById("filter-tipo")
+        .addEventListener("change", loadUsers);
+
+      // Edit modal
+      async function openEdit(id) {
+        editingUserId = id;
+        document.getElementById("edit-msg").textContent = "";
+        document.getElementById("delete-confirm").style.display = "none";
+        try {
+          const res = await fetch(`/admin/users/${id}`, {
+            headers: authHeaders(),
+          });
+          const u = await res.json();
+          if (!res.ok) {
+            alert(u.error);
+            return;
+          }
+          document.getElementById("modal-edit-title").textContent =
+            `Editar: ${u.usuario}`;
+          document.getElementById("edit-usuario").value = u.usuario;
+          document
+            .getElementById("edit-tipo-group")
+            .querySelectorAll(".radio-option")
+            .forEach((o) => {
+              const r = o.querySelector("input");
+              const s = r.value === u.tipo;
+              r.checked = s;
+              o.classList.toggle("selected", s);
+            });
+          document.getElementById("edit-perms").innerHTML = (
+            u.permissions || []
+          )
+            .map((p) => `<span class="perm-tag">${p}</span>`)
+            .join("");
+          document.getElementById("modal-edit").classList.add("active");
+        } catch (e) {
+          alert(e.message);
+        }
+      }
+      function closeModal(id) {
+        document.getElementById(id).classList.remove("active");
+      }
+      document
+        .getElementById("modal-edit-close")
+        .addEventListener("click", () => closeModal("modal-edit"));
+      document
+        .getElementById("btn-cancel-edit")
+        .addEventListener("click", () => closeModal("modal-edit"));
+      document
+        .getElementById("modal-create-close")
+        .addEventListener("click", () => closeModal("modal-create"));
+      document
+        .getElementById("btn-cancel-create")
+        .addEventListener("click", () => closeModal("modal-create"));
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          closeModal("modal-edit");
+          closeModal("modal-create");
+        }
+      });
+      document.querySelectorAll(".modal-overlay").forEach((o) => {
+        o.addEventListener("click", (e) => {
+          if (e.target === o) o.classList.remove("active");
+        });
+      });
+
+      document
+        .getElementById("btn-save-edit")
+        .addEventListener("click", async () => {
+          const msg = document.getElementById("edit-msg"),
+            u = document.getElementById("edit-usuario").value.trim(),
+            r = document.querySelector("#edit-tipo-group input:checked");
+          if (!u) {
+            msg.textContent = "Vazio";
+            msg.style.color = "#f97316";
+            return;
+          }
+          if (!r) {
+            msg.textContent = "Selecione tipo";
+            msg.style.color = "#f97316";
+            return;
+          }
+          msg.textContent = "Salvando...";
+          msg.style.color = "";
+          try {
+            const res = await fetch(`/admin/users/${editingUserId}`, {
+              method: "PUT",
+              headers: authHeaders(),
+              body: JSON.stringify({ usuario: u, tipo: r.value }),
+            });
+            const d = await res.json();
+            if (!res.ok) {
+              msg.textContent = d.error;
+              msg.style.color = "#f97316";
+              return;
+            }
+            msg.textContent = "Salvo!";
+            msg.style.color = "#22c55e";
+            await loadUsers();
+            await loadStats();
+            setTimeout(() => closeModal("modal-edit"), 500);
+          } catch (e) {
+            msg.textContent = e.message;
+            msg.style.color = "#f97316";
+          }
+        });
+
+      document
+        .getElementById("btn-delete-user")
+        .addEventListener("click", () => {
+          document.getElementById("delete-confirm").style.display = "flex";
+        });
+      document
+        .getElementById("btn-cancel-delete")
+        .addEventListener("click", () => {
+          document.getElementById("delete-confirm").style.display = "none";
+        });
+      document
+        .getElementById("btn-confirm-delete")
+        .addEventListener("click", async () => {
+          const msg = document.getElementById("edit-msg");
+          try {
+            const res = await fetch(`/admin/users/${editingUserId}`, {
+              method: "DELETE",
+              headers: authHeaders(),
+            });
+            const d = await res.json();
+            if (!res.ok) {
+              msg.textContent = d.error;
+              msg.style.color = "#f97316";
+              return;
+            }
+            closeModal("modal-edit");
+            await loadUsers();
+            await loadStats();
+          } catch (e) {
+            msg.textContent = e.message;
+            msg.style.color = "#f97316";
+          }
+        });
+
+      document.getElementById("btn-new-user").addEventListener("click", () => {
+        document.getElementById("new-usuario").value = "";
+        document.getElementById("new-senha").value = "";
+        document.getElementById("create-msg").textContent = "";
+        document
+          .getElementById("create-tipo-group")
+          .querySelectorAll(".radio-option")
+          .forEach((o) => {
+            o.classList.remove("selected");
+            o.querySelector("input").checked = false;
+          });
+        document.getElementById("modal-create").classList.add("active");
+      });
+
+      document
+        .getElementById("btn-save-create")
+        .addEventListener("click", async () => {
+          const msg = document.getElementById("create-msg"),
+            u = document.getElementById("new-usuario").value.trim(),
+            s = document.getElementById("new-senha").value,
+            r = document.querySelector("#create-tipo-group input:checked");
+          if (!u || !s) {
+            msg.textContent = "Preencha tudo";
+            msg.style.color = "#f97316";
+            return;
+          }
+          if (!r) {
+            msg.textContent = "Selecione tipo";
+            msg.style.color = "#f97316";
+            return;
+          }
+          msg.textContent = "Criando...";
+          msg.style.color = "";
+          try {
+            const res = await fetch("/admin/users", {
+              method: "POST",
+              headers: authHeaders(),
+              body: JSON.stringify({ usuario: u, senha: s, tipo: r.value }),
+            });
+            const d = await res.json();
+            if (!res.ok) {
+              msg.textContent = d.error;
+              msg.style.color = "#f97316";
+              return;
+            }
+            msg.textContent = "Criado!";
+            msg.style.color = "#22c55e";
+            await loadUsers();
+            await loadStats();
+            setTimeout(() => closeModal("modal-create"), 500);
+          } catch (e) {
+            msg.textContent = e.message;
+            msg.style.color = "#f97316";
+          }
+        });
+
+      loadDebugUsers();
+    </script>
+  </body>
+</html>

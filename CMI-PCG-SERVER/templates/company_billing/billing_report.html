@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Relatório de Atendimentos — {{ empresa.nome }}</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 15mm 12mm 18mm 12mm;
+        @bottom-center {
+          content: "Pág. " counter(page) "/" counter(pages)
+            " — Centro Médico Integrado — Relatório de Faturamento";
+          font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+          font-size: 6.5pt;
+          color: #999;
+        }
+      }
+
+      :root {
+        --pri: #1a3a5c;
+        --sec: #2c5f8a;
+        --bdr: #c8d6e0;
+        --bg-h: #f0f5fa;
+        --bg-z: #f8fafb;
+        --ok: #1b7a3d;
+        --txt: #1a1a1a;
+        --txt-l: #555;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 9pt;
+        color: var(--txt);
+        line-height: 1.4;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        border-bottom: 2.5px solid var(--pri);
+        padding-bottom: 8px;
+        margin-bottom: 12px;
+      }
+      .header-logo {
+        flex: 0 0 70px;
+      }
+      .header-logo img {
+        max-height: 50px;
+        max-width: 70px;
+      }
+      .header-center {
+        flex: 1;
+        text-align: center;
+      }
+      .header-center h1 {
+        font-size: 14pt;
+        font-weight: 700;
+        color: var(--pri);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .header-center .subtitle {
+        font-size: 10pt;
+        font-weight: 600;
+        color: var(--sec);
+      }
+      .header-right {
+        flex: 0 0 100px;
+        text-align: right;
+        font-size: 7.5pt;
+        color: var(--txt-l);
+      }
+
+      .sec {
+        margin-bottom: 10px;
+        page-break-inside: avoid;
+      }
+      .sec-t {
+        font-size: 8.5pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: var(--pri);
+        background: var(--bg-h);
+        border-left: 3px solid var(--pri);
+        padding: 3px 7px;
+        margin-bottom: 5px;
+      }
+
+      .info-grid {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .info-grid td {
+        padding: 2px 5px;
+        font-size: 9pt;
+      }
+      .info-grid .lbl {
+        font-weight: 600;
+        color: var(--txt-l);
+        white-space: nowrap;
+        width: 1%;
+      }
+
+      .kpi-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .kpi {
+        flex: 1;
+        text-align: center;
+        border: 1.5px solid var(--bdr);
+        border-radius: 3px;
+        padding: 6px 4px;
+      }
+      .kpi-label {
+        font-size: 7pt;
+        text-transform: uppercase;
+        color: var(--txt-l);
+      }
+      .kpi-value {
+        font-size: 14pt;
+        font-weight: 800;
+        color: var(--pri);
+      }
+      .kpi-value.money {
+        color: var(--ok);
+      }
+
+      table.data {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 8.5pt;
+        margin-bottom: 8px;
+      }
+      table.data th {
+        background: var(--bg-h);
+        font-weight: 600;
+        color: var(--pri);
+        text-align: left;
+        padding: 3px 5px;
+        border-bottom: 1.5px solid var(--bdr);
+      }
+      table.data td {
+        padding: 3px 5px;
+        border-bottom: 0.5px solid #eee;
+      }
+      table.data tr:nth-child(even) td {
+        background: var(--bg-z);
+      }
+
+      .badge {
+        display: inline-block;
+        font-size: 6.5pt;
+        font-weight: 700;
+        padding: 1px 4px;
+        border-radius: 2px;
+        text-transform: uppercase;
+      }
+      .badge-ok {
+        background: #dcfce7;
+        color: var(--ok);
+      }
+      .badge-no {
+        background: #fee2e2;
+        color: #b91c1c;
+      }
+
+      .total-row td {
+        font-weight: 700;
+        border-top: 2px solid var(--pri);
+        padding-top: 5px;
+      }
+
+      .footer-note {
+        font-size: 7pt;
+        color: #888;
+        text-align: justify;
+        margin-top: 10px;
+        padding-top: 5px;
+        border-top: 1px solid #ddd;
+      }
+
+      .occ-note {
+        font-size: 7.5pt;
+        color: var(--sec);
+        background: var(--bg-h);
+        border: 1px solid var(--bdr);
+        border-radius: 3px;
+        padding: 4px 8px;
+        margin-bottom: 10px;
+        font-style: italic;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- CABEÇALHO -->
+    <div class="header">
+      {% if logo_path %}
+      <div class="header-logo">
+        <img src="{{ logo_path }}" alt="Logo CMI" />
+      </div>
+      {% endif %}
+      <div class="header-center">
+        <h1>Centro Médico Integrado</h1>
+        <div class="subtitle">
+          Relatório de Atendimentos — Faturamento Posterior
+        </div>
+      </div>
+      <div class="header-right">
+        <strong>Gerado em</strong><br />{{ gerado_em }}
+      </div>
+    </div>
+
+    <!-- EMPRESA -->
+    <div class="sec">
+      <div class="sec-t">Empresa</div>
+      <table class="info-grid">
+        <tr>
+          <td class="lbl">Razão Social:</td>
+          <td>{{ empresa.nome }}</td>
+          <td class="lbl">CNPJ:</td>
+          <td>{{ empresa.cnpj_formatado }}</td>
+        </tr>
+        <tr>
+          <td class="lbl">Período:</td>
+          <td colspan="3">
+            {{ periodo.data_inicio }} a {{ periodo.data_fim }}
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- NOTA OCUPACIONAL -->
+    <div class="occ-note">
+      ⚕ Este relatório inclui exclusivamente atendimentos ocupacionais
+      (admissional, periódico, demissional, retorno ao trabalho, mudança de
+      função/risco). Consultas particulares não são contabilizadas.
+    </div>
+
+    <!-- KPIs -->
+    {% if resumo %}
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-label">Pacientes Vinculados</div>
+        <div class="kpi-value">{{ total_pacientes }}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Atendidos no Período</div>
+        <div class="kpi-value">{{ total_pacientes_atendidos }}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Consultas Ocup.</div>
+        <div class="kpi-value">{{ resumo.total_consultas }}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">ASOs Emitidos</div>
+        <div class="kpi-value">{{ resumo.total_asos }}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Total a Faturar</div>
+        <div class="kpi-value money">
+          R$ {{ "%.2f"|format(resumo.total_geral) }}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- TABELA DE PACIENTES -->
+    <div class="sec">
+      <div class="sec-t">Pacientes e Atendimentos Ocupacionais</div>
+      <table class="data">
+        <thead>
+          <tr>
+            <th style="width: 5%">#</th>
+            <th style="width: 28%">Paciente</th>
+            <th style="width: 15%">CPF</th>
+            <th style="width: 10%">Consultas</th>
+            <th style="width: 10%">ASOs</th>
+            <th style="width: 12%">Questionários</th>
+            <th style="width: 10%">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in pacientes %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ p.nome }}</td>
+            <td>{{ p.cpf_formatado }}</td>
+            <td style="text-align: center">{{ p.total_consultas }}</td>
+            <td style="text-align: center">{{ p.total_asos }}</td>
+            <td style="text-align: center">{{ p.total_questionarios }}</td>
+            <td style="text-align: center">
+              {% if p.possui_atendimento %}
+              <span class="badge badge-ok">Atendido</span>
+              {% else %}
+              <span class="badge badge-no">Pendente</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- DETALHAMENTO POR PACIENTE ATENDIDO -->
+    {% for p in pacientes %} {% if p.possui_atendimento %}
+    <div class="sec" style="page-break-inside: avoid">
+      <div class="sec-t">{{ p.nome }} — {{ p.cpf_formatado }}</div>
+
+      {% if p.consultas %}
+      <table class="data">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Hora</th>
+            <th>Tipo</th>
+            <th>Médico</th>
+            <th>Diagnóstico</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in p.consultas %}
+          <tr>
+            <td>{{ c.data }}</td>
+            <td>{{ c.hora or '—' }}</td>
+            <td>{{ c.tipo or '—' }}</td>
+            <td>{{ c.medico or '—' }}</td>
+            <td>{{ c.diagnostico or '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %} {% if p.asos %}
+      <table class="data">
+        <thead>
+          <tr>
+            <th>Data ASO</th>
+            <th>Tipo Exame</th>
+            <th>Conclusão</th>
+            <th>Médico</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in p.asos %}
+          <tr>
+            <td>{{ a.data }}</td>
+            <td>{{ a.tipo_exame }}</td>
+            <td>{{ a.conclusao }}</td>
+            <td>{{ a.medico or '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+    {% endif %} {% endfor %}
+
+    <!-- RESUMO FINANCEIRO -->
+    {% if resumo %}
+    <div class="sec" style="page-break-inside: avoid">
+      <div class="sec-t">Resumo Financeiro</div>
+      <table class="data">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th style="text-align: center">Quantidade</th>
+            <th style="text-align: right">Valor Unit.</th>
+            <th style="text-align: right">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Consultas ocupacionais realizadas</td>
+            <td style="text-align: center">{{ resumo.total_consultas }}</td>
+            <td style="text-align: right">
+              R$ {{ "%.2f"|format(resumo.empresa.valor_por_consulta) }}
+            </td>
+            <td style="text-align: right">
+              R$ {{ "%.2f"|format(resumo.subtotal_consultas) }}
+            </td>
+          </tr>
+          <tr>
+            <td>ASOs emitidos</td>
+            <td style="text-align: center">{{ resumo.total_asos }}</td>
+            <td style="text-align: right">
+              R$ {{ "%.2f"|format(resumo.empresa.valor_por_aso) }}
+            </td>
+            <td style="text-align: right">
+              R$ {{ "%.2f"|format(resumo.subtotal_asos) }}
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td colspan="3" style="text-align: right">
+              <strong>TOTAL A FATURAR</strong>
+            </td>
+            <td style="text-align: right">
+              <strong>R$ {{ "%.2f"|format(resumo.total_geral) }}</strong>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    {% endif %}
+
+    <div class="footer-note">
+      Documento gerado eletronicamente pelo sistema CMI-PCG. Inclui
+      exclusivamente atendimentos ocupacionais conforme NR-7 (Portaria MTP nº
+      567/2022). Os custos com exames ocupacionais são de responsabilidade do
+      empregador (CLT art. 168). Consultas particulares, retornos clínicos e
+      procedimentos não ocupacionais não constam neste relatório.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,14 @@
+.git
+.agents
+.codex
+**/__pycache__/
+**/.pytest_cache/
+**/.ruff_cache/
+**/.mypy_cache/
+**/node_modules/
+**/.next/
+**/dist/
+**/build/
+*.pyc
+.env
+

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Relatório Financeiro de pacientes</title>
+        <style>
+        /* Setup para A4 paisagem */
+        @page {
+            size: A4 landscape;
+            margin: 20mm;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 11px;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background: #fff;
+        }
+
+        .container {
+            padding: 20px 20px;
+            max-width: 1123px; /* A4 landscape width in pixels @ 96dpi */
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-weight: 700;
+            font-size: 22px;
+            text-align: center;
+            color: #004085;
+            margin-bottom: 8px;
+            border-bottom: 2px solid #004085;
+            padding-bottom: 6px;
+        }
+
+        .periodo {
+            text-align: center;
+            font-size: 13px;
+            margin-bottom: 20px;
+            color: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+            table-layout: fixed;
+        }
+
+        thead tr {
+            background-color: #0056b3;
+            color: white;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px 5px;
+            text-align: center;
+            font-size: 10.5px;
+            word-wrap: break-word;
+        }
+
+        tbody tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+
+        tbody tr:hover {
+            background-color: #d0e7ff;
+        }
+
+        th {
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+
+        td.numeric {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .footer {
+            max-width: 400px;
+            margin-left: auto;
+            font-size: 13px;
+            border-top: 2px solid #0056b3;
+            padding-top: 12px;
+            color: #004085;
+            font-weight: 600;
+        }
+
+        .footer p {
+            margin: 4px 0;
+        }
+
+        /* Para impressão: ajustar quebras e margens */
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            .container {
+                padding: 0;
+                max-width: none;
+                margin: 0;
+            }
+            table {
+                page-break-inside: auto;
+            }
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+            thead {
+                display: table-header-group;
+            }
+            tfoot {
+                display: table-footer-group;
+            }
+        }
+    </style>
+    </head>
+    <body>
+
+        <div class="container">
+            <h1>Clínica CMI - Relatório Financeiro de Paciente</h1>
+            <div class="periodo">
+                <strong>Período:</strong> {{ data_inicio }} até {{ data_fim }}
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data do Pagamento</th>
+                        <th>Paciente</th>
+                        <th>Empresa</th>
+                        <th>Valor Pago (R$)</th>
+                        <th>Houve Desconto?</th>
+                        <th>Valor do Desconto (R$)</th>
+                        <th>Valor Líquido (R$)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pagamento in pagamentos %}
+                    <tr>
+                        <td>{{ pagamento.data.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ pagamento.paciente.nome }}</td>
+                        <td>
+                            {% if pagamento.paciente.empresa %}
+                            {{ pagamento.paciente.empresa.nome }}
+                            {% else %}
+                            Não vinculada
+                            {% endif %}
+                        </td>
+                        <td class="numeric">{{ "%.2f"|format(pagamento.valor)
+                            }}</td>
+                        <td>{{ "Sim" if pagamento.valor_desconto is not none and
+                            pagamento.valor_desconto > 0 else "Não" }}</td>
+                        <td class="numeric">{{
+                            "%.2f"|format(pagamento.valor_desconto or 0) }}</td>
+                        <td class="numeric">
+                            {{ "%.2f"|format(pagamento.valor -
+                            (pagamento.valor_desconto or 0)) }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <h2
+                style="font-size: 16px; color: #004085; margin-bottom: 10px; text-align: center;">Histórico
+                de Consultas</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Hora</th>
+                        <th>Médico</th>
+                        <th>Tipo</th>
+                        <th>Procedimentos</th>
+                        <th>Exames Solicitados?</th>
+                        <th>Medicamentos Prescritos?</th>
+                        <th>Medicamentos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for consulta in consultas %}
+                    <tr>
+                        <td>{{ consulta.data.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ consulta.hora.strftime('%H:%M') if consulta.hora
+                            else "-" }}</td>
+                        <td>{{ consulta.medico.nome if consulta.medico else
+                            "Não informado" }}</td>
+                        <td>{{ consulta.tipo or "-" }}</td>
+                        <td>{{ consulta.procedimentos or "-" }}</td>
+                        <td>{{ "Sim" if consulta.houve_solicitacao_de_exame else
+                            "Não" }}</td>
+                        <td>{{ "Sim" if consulta.houve_prescricao_medicamentos
+                            else "Não" }}</td>
+                        <td>{{ consulta.medicamentos_prescrevidos or "-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="footer">
+                <p>Total Recebido: R$ {{ "%.2f"|format(total_recebido) }}</p>
+                <p>Total em Descontos: R$ {{ "%.2f"|format(total_descontos)
+                    }}</p>
+                <p>Saldo Final: R$ {{ "%.2f"|format(total_recebido -
+                    total_descontos) }}</p>
+            </div>
+        </div>
+
+    </body>
+</html>

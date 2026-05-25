@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Recibo de Cobrança — {{ empresa.nome }}</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 18mm 15mm 20mm 15mm;
+        @bottom-center {
+          content: "Centro Médico Integrado — Recibo de Cobrança por Serviços Ocupacionais";
+          font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+          font-size: 6.5pt;
+          color: #999;
+        }
+      }
+
+      :root {
+        --pri: #1a3a5c;
+        --sec: #2c5f8a;
+        --bdr: #c8d6e0;
+        --bg-h: #f0f5fa;
+        --bg-z: #f8fafb;
+        --ok: #1b7a3d;
+        --txt: #1a1a1a;
+        --txt-l: #555;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 9.5pt;
+        color: var(--txt);
+        line-height: 1.45;
+      }
+
+      .page {
+        min-height: calc(297mm - 18mm - 20mm);
+        display: flex;
+        flex-direction: column;
+      }
+      .content {
+        flex: 1 1 auto;
+      }
+      .bottom {
+        margin-top: auto;
+        page-break-inside: avoid;
+      }
+
+      /* HEADER */
+      .header {
+        display: flex;
+        align-items: center;
+        border-bottom: 2.5px solid var(--pri);
+        padding-bottom: 10px;
+        margin-bottom: 14px;
+      }
+      .header-logo {
+        flex: 0 0 80px;
+      }
+      .header-logo img {
+        max-height: 60px;
+        max-width: 80px;
+      }
+      .header-center {
+        flex: 1;
+        text-align: center;
+      }
+      .header-center h1 {
+        font-size: 15pt;
+        font-weight: 700;
+        color: var(--pri);
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+      }
+      .header-center .subtitle {
+        font-size: 11pt;
+        font-weight: 600;
+        color: var(--sec);
+      }
+      .header-right {
+        flex: 0 0 110px;
+        text-align: right;
+        font-size: 8pt;
+        color: var(--txt-l);
+        line-height: 1.5;
+      }
+
+      /* SECTIONS */
+      .sec {
+        margin-bottom: 12px;
+        page-break-inside: avoid;
+      }
+      .sec-t {
+        font-size: 9pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--pri);
+        background: var(--bg-h);
+        border-left: 3px solid var(--pri);
+        padding: 4px 8px;
+        margin-bottom: 6px;
+      }
+
+      .info-grid {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .info-grid td {
+        padding: 3px 6px;
+        font-size: 9.5pt;
+      }
+      .info-grid .lbl {
+        font-weight: 600;
+        color: var(--txt-l);
+        white-space: nowrap;
+        width: 1%;
+      }
+
+      .occ-note {
+        font-size: 7.5pt;
+        color: var(--sec);
+        background: var(--bg-h);
+        border: 1px solid var(--bdr);
+        border-radius: 3px;
+        padding: 4px 8px;
+        margin-bottom: 10px;
+        font-style: italic;
+      }
+
+      /* TABELA ITENS */
+      table.itens {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 8.5pt;
+      }
+      table.itens th {
+        background: var(--bg-h);
+        font-weight: 600;
+        color: var(--pri);
+        text-align: left;
+        padding: 4px 6px;
+        border-bottom: 1.5px solid var(--bdr);
+      }
+      table.itens td {
+        padding: 3px 6px;
+        border-bottom: 0.5px solid #eee;
+      }
+      table.itens tr:nth-child(even) td {
+        background: var(--bg-z);
+      }
+
+      .tipo-badge {
+        display: inline-block;
+        font-size: 6.5pt;
+        font-weight: 700;
+        padding: 1px 5px;
+        border-radius: 2px;
+        text-transform: uppercase;
+      }
+      .tipo-consulta {
+        background: #dbeafe;
+        color: #1e40af;
+      }
+      .tipo-aso {
+        background: #dcfce7;
+        color: #166534;
+      }
+
+      /* TOTAIS */
+      .totais {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+      .totais td {
+        padding: 4px 8px;
+        font-size: 10pt;
+      }
+      .totais .lbl-t {
+        text-align: right;
+        font-weight: 600;
+        color: var(--txt-l);
+      }
+      .totais .val-t {
+        text-align: right;
+        width: 120px;
+      }
+      .totais .total-final td {
+        border-top: 2.5px solid var(--pri);
+        font-size: 12pt;
+        font-weight: 800;
+        color: var(--pri);
+        padding-top: 6px;
+      }
+
+      .aso-embutido-note {
+        font-size: 7.5pt;
+        color: var(--ok);
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 3px;
+        padding: 4px 8px;
+        margin-top: 8px;
+        font-style: italic;
+      }
+
+      /* AVISO SEDEX EM DESTAQUE */
+      .aviso-sedex {
+        background-color: #fef2f2;
+        border: 1px solid #fca5a5;
+        border-left: 4px solid #ef4444;
+        color: #991b1b;
+        padding: 10px 14px;
+        margin-top: 20px;
+        border-radius: 3px;
+        font-size: 9.5pt;
+        font-weight: 600;
+        text-align: center;
+      }
+
+      .legal {
+        font-size: 7pt;
+        color: #888;
+        text-align: justify;
+        margin-top: 15mm;
+        padding-top: 5px;
+        border-top: 1px solid #ddd;
+        line-height: 1.3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="content">
+        <!-- CABEÇALHO -->
+        <div class="header">
+          {% if logo_path %}
+          <div class="header-logo">
+            <img src="{{ logo_path }}" alt="Logo CMI" />
+          </div>
+          {% endif %}
+          <div class="header-center">
+            <h1>Centro Médico Integrado</h1>
+            <div class="subtitle">
+              Recibo de Cobrança — Serviços Ocupacionais
+            </div>
+          </div>
+          <div class="header-right">
+            <strong>Emissão</strong><br />
+            {{ gerado_em }}
+          </div>
+        </div>
+
+        <!-- DADOS DA EMPRESA -->
+        <div class="sec">
+          <div class="sec-t">Empresa Conveniada</div>
+          <table class="info-grid">
+            <tr>
+              <td class="lbl">Razão Social:</td>
+              <td>{{ empresa.razao_social }}</td>
+            </tr>
+            <tr>
+              <td class="lbl">Nome Fantasia:</td>
+              <td>{{ empresa.nome }}</td>
+              <td class="lbl">CNPJ:</td>
+              <td>{{ empresa.cnpj_formatado }}</td>
+            </tr>
+            {% if empresa.endereco %}
+            <tr>
+              <td class="lbl">Endereço:</td>
+              <td colspan="3">{{ empresa.endereco }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+              <td class="lbl">Período de Referência:</td>
+              <td colspan="3">
+                {{ periodo.data_inicio }} a {{ periodo.data_fim }}
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- NOTA OCUPACIONAL -->
+        <div class="occ-note">
+          ⚕ Inclui exclusivamente atendimentos ocupacionais. Consultas
+          particulares não são contabilizadas.
+        </div>
+
+        <!-- ITENS DETALHADOS -->
+        <div class="sec">
+          <div class="sec-t">Detalhamento dos Atendimentos Ocupacionais</div>
+          <table class="itens">
+            <thead>
+              <tr>
+                <th style="width: 5%">#</th>
+                <th style="width: 10%">Data</th>
+                <th style="width: 10%">Tipo</th>
+                <th style="width: 25%">Paciente</th>
+                <th style="width: 15%">CPF</th>
+                <th style="width: 20%">Descrição</th>
+                <th style="width: 15%; text-align: right">Valor (R$)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in itens %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ item.data_br or '—' }}</td>
+                <td>
+                  {% if item.tipo == 'CONSULTA' %}
+                  <span class="tipo-badge tipo-consulta">Consulta</span>
+                  {% else %}
+                  <span class="tipo-badge tipo-aso">ASO</span>
+                  {% endif %}
+                </td>
+                <td>{{ item.paciente }}</td>
+                <td>{{ item.cpf }}</td>
+                <td>{{ item.descricao }}</td>
+                <td style="text-align: right">
+                  {{ "%.2f"|format(item.valor_unitario) }}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          {% if aso_embutido_na_consulta %}
+          <div class="aso-embutido-note">
+            ✓ Os {{ total_asos }} ASO(s) emitido(s) no período estão inclusos no
+            valor da consulta ocupacional e não geram cobrança separada.
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- TOTAIS -->
+        <div class="sec" style="page-break-inside: avoid">
+          <div class="sec-t">Resumo de Valores</div>
+          <table class="totais">
+            <tr>
+              <td class="lbl-t">
+                Consultas ocupacionais ({{ total_consultas }} × R$ {{
+                "%.2f"|format(valor_por_consulta) }}):
+              </td>
+              <td class="val-t">R$ {{ "%.2f"|format(subtotal_consultas) }}</td>
+            </tr>
+            {% if not aso_embutido_na_consulta %}
+            <tr>
+              <td class="lbl-t">
+                ASOs ({{ total_asos }} × R$ {{ "%.2f"|format(valor_por_aso) }}):
+              </td>
+              <td class="val-t">R$ {{ "%.2f"|format(subtotal_asos) }}</td>
+            </tr>
+            {% endif %}
+            <tr class="total-final">
+              <td class="lbl-t">TOTAL A PAGAR:</td>
+              <td class="val-t">R$ {{ "%.2f"|format(total_geral) }}</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="aviso-sedex">
+          ⚠️ Atenção: Há uma cobrança extra no valor de
+          <strong>R$ 37,45</strong> referente à taxa dos Correios para o envio
+          da documentação via SEDEX.
+        </div>
+      </div>
+
+      <!-- RODAPÉ FIXO -->
+      <div class="bottom">
+        <div class="legal">
+          Documento emitido pelo sistema CMI-PCG para fins de controle interno e
+          cobrança de serviços ocupacionais prestados. Inclui exclusivamente
+          atendimentos ocupacionais conforme NR-7 (Portaria MTP nº 567/2022).
+          Conforme CLT art. 168, os custos dos exames médicos são de
+          responsabilidade integral do empregador. Consultas particulares,
+          retornos clínicos e procedimentos não ocupacionais não constam neste
+          documento. Este recibo não substitui nota fiscal de serviços.
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

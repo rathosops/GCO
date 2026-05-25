@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>ASO - {{ paciente.nome }}</title>
+    <style>
+      /* ================================================================
+       ASO — Atestado de Saúde Ocupacional
+       Template A4 profissional para impressão via WeasyPrint
+       Conforme NR-7 item 7.5.19.1
+       ================================================================ */
+
+      @page {
+        size: A4;
+        margin: 18mm 15mm 20mm 15mm;
+
+        @bottom-center {
+          content: "Documento gerado eletronicamente — Centro Médico Integrado";
+          font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+          font-size: 7pt;
+          color: #999;
+        }
+      }
+
+      :root {
+        --cor-primaria: #1a3a5c;
+        --cor-secundaria: #2c5f8a;
+        --cor-borda: #c8d6e0;
+        --cor-fundo-header: #f0f5fa;
+        --cor-fundo-zebra: #f8fafb;
+        --cor-apto: #1b7a3d;
+        --cor-inapto: #b91c1c;
+        --cor-restricao: #b45309;
+        --cor-texto: #1a1a1a;
+        --cor-texto-leve: #555;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 9.5pt;
+        color: var(--cor-texto);
+        line-height: 1.45;
+      }
+
+      /* ====== LAYOUT A4: conteúdo flex para "colar" rodapé/assinaturas no fim ====== */
+      .page {
+        min-height: calc(
+          297mm - 18mm - 20mm
+        ); /* A4 altura - margens @page (top/bottom) */
+        display: flex;
+        flex-direction: column;
+      }
+      .content {
+        flex: 1 1 auto;
+      }
+      .bottom {
+        margin-top: auto; /* empurra o bloco final para o fim da folha */
+        page-break-inside: avoid;
+      }
+
+      /* ---- CABEÇALHO ---- */
+
+      .header {
+        display: flex;
+        align-items: center;
+        border-bottom: 2.5px solid var(--cor-primaria);
+        padding-bottom: 10px;
+        margin-bottom: 14px;
+      }
+
+      .header-logo {
+        flex: 0 0 80px;
+      }
+
+      .header-logo img {
+        max-height: 60px;
+        max-width: 80px;
+      }
+
+      .header-center {
+        flex: 1;
+        text-align: center;
+        padding: 0 12px;
+      }
+
+      .header-center h1 {
+        font-size: 15pt;
+        font-weight: 700;
+        color: var(--cor-primaria);
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-bottom: 2px;
+      }
+
+      .header-center .subtitle {
+        font-size: 10.5pt;
+        font-weight: 600;
+        color: var(--cor-secundaria);
+        letter-spacing: 0.4px;
+      }
+
+      .header-right {
+        flex: 0 0 110px;
+        text-align: right;
+        font-size: 8pt;
+        color: var(--cor-texto-leve);
+        line-height: 1.5;
+      }
+
+      .header-right strong {
+        color: var(--cor-texto);
+      }
+
+      /* ---- SEÇÕES ---- */
+
+      .section {
+        margin-bottom: 12px;
+        page-break-inside: avoid;
+      }
+
+      .section-title {
+        font-size: 9pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--cor-primaria);
+        background: var(--cor-fundo-header);
+        border-left: 3px solid var(--cor-primaria);
+        padding: 4px 8px;
+        margin-bottom: 6px;
+      }
+
+      .section-body {
+        padding: 0 4px;
+      }
+
+      /* ---- GRID DE DADOS ---- */
+
+      .data-grid {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .data-grid td {
+        padding: 3px 6px;
+        vertical-align: top;
+        font-size: 9.5pt;
+      }
+
+      .data-grid .label {
+        font-weight: 600;
+        color: var(--cor-texto-leve);
+        white-space: nowrap;
+        width: 1%;
+        padding-right: 4px;
+      }
+
+      .data-grid .value {
+        color: var(--cor-texto);
+      }
+
+      /* Grid 2 colunas lado a lado */
+      .grid-2col {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .grid-2col td {
+        width: 50%;
+        padding: 0;
+        vertical-align: top;
+      }
+
+      /* ---- CAIXA DE CONCLUSÃO ---- */
+
+      .conclusao-box {
+        border: 2px solid var(--cor-borda);
+        border-radius: 4px;
+        padding: 10px 14px;
+        text-align: center;
+        margin: 4px 0;
+      }
+
+      .conclusao-box.apto {
+        border-color: var(--cor-apto);
+        background: #f0fdf4;
+      }
+
+      .conclusao-box.inapto {
+        border-color: var(--cor-inapto);
+        background: #fef2f2;
+      }
+
+      .conclusao-box.restricao {
+        border-color: var(--cor-restricao);
+        background: #fffbeb;
+      }
+
+      .conclusao-label {
+        font-size: 8pt;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--cor-texto-leve);
+        margin-bottom: 2px;
+      }
+
+      .conclusao-status {
+        font-size: 14pt;
+        font-weight: 800;
+        letter-spacing: 1px;
+      }
+
+      .conclusao-box.apto .conclusao-status {
+        color: var(--cor-apto);
+      }
+      .conclusao-box.inapto .conclusao-status {
+        color: var(--cor-inapto);
+      }
+      .conclusao-box.restricao .conclusao-status {
+        color: var(--cor-restricao);
+      }
+
+      /* ---- LISTAS ---- */
+
+      .compact-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .compact-list li {
+        padding: 2px 0;
+        font-size: 9.5pt;
+      }
+
+      .compact-list li::before {
+        content: "▸ ";
+        color: var(--cor-secundaria);
+        font-size: 8pt;
+      }
+
+      .compact-list li strong {
+        color: var(--cor-texto-leve);
+      }
+
+      /* Lista em 2 colunas */
+      .list-2col {
+        column-count: 2;
+        column-gap: 16px;
+      }
+
+      /* ---- TABELA NRs ---- */
+
+      .nr-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 9pt;
+      }
+
+      .nr-table th {
+        background: var(--cor-fundo-header);
+        font-weight: 600;
+        color: var(--cor-primaria);
+        text-align: left;
+        padding: 3px 6px;
+        border-bottom: 1px solid var(--cor-borda);
+      }
+
+      .nr-table td {
+        padding: 3px 6px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .nr-table tr:nth-child(even) td {
+        background: var(--cor-fundo-zebra);
+      }
+
+      .nr-status-conforme {
+        color: var(--cor-apto);
+        font-weight: 600;
+      }
+      .nr-status-nao-conforme {
+        color: var(--cor-inapto);
+        font-weight: 600;
+      }
+      .nr-status-na {
+        color: #888;
+      }
+
+      /* ---- RESTRIÇÕES / OBSERVAÇÕES ---- */
+
+      .obs-box {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 3px;
+        padding: 6px 10px;
+        font-size: 9.5pt;
+        margin-top: 4px;
+      }
+
+      .obs-box.neutral {
+        background: var(--cor-fundo-zebra);
+        border-color: var(--cor-borda);
+      }
+
+      /* ---- ASSINATURA ---- */
+
+      .signature-area {
+        margin-top: 10mm; /* espaço "bom" para assinatura antes das linhas */
+        page-break-inside: avoid;
+        display: flex;
+        justify-content: space-between;
+        gap: 40px;
+      }
+
+      .signature-block {
+        flex: 1;
+        text-align: center;
+      }
+
+      .signature-line {
+        border-top: 1px solid #333;
+        margin: 35mm 20px 4px 20px; /* reserva vertical para a assinatura */
+      }
+
+      .signature-name {
+        font-weight: 700;
+        font-size: 9.5pt;
+        color: var(--cor-texto);
+      }
+
+      .signature-detail {
+        font-size: 8pt;
+        color: var(--cor-texto-leve);
+      }
+
+      /* ---- SEPARADOR HORIZONTAL ---- */
+
+      .divider {
+        border: none;
+        border-top: 1px solid var(--cor-borda);
+        margin: 10px 0;
+      }
+
+      /* ---- NOTA LEGAL ---- */
+
+      .legal-note {
+        font-size: 7.5pt;
+        color: #888;
+        text-align: justify;
+        margin-top: 10px;
+        padding-top: 6px;
+        border-top: 1px solid #ddd;
+        line-height: 1.35;
+      }
+
+      /* ---- UTILITÁRIOS ---- */
+
+      .avoid-break {
+        page-break-inside: avoid;
+      }
+      .text-muted {
+        color: var(--cor-texto-leve);
+      }
+      .text-sm {
+        font-size: 8.5pt;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="content">
+        <!-- ============================================================
+         CABEÇALHO
+         ============================================================ -->
+        <div class="header">
+          <div class="header-logo">
+            {% if logo_path %}
+            <img src="{{ logo_path }}" alt="Logo CMI" />
+            {% endif %}
+          </div>
+          <div class="header-center">
+            <h1>Centro Médico Integrado</h1>
+            <div class="subtitle">Atestado de Saúde Ocupacional — ASO</div>
+          </div>
+          <div class="header-right">
+            <strong>Emissão</strong><br />
+            {{ data_geracao }}<br />
+            {% if aso_id %}
+            <strong>Nº</strong> {{ aso_id }} {% endif %}
+          </div>
+        </div>
+
+        <!-- ============================================================
+         I. IDENTIFICAÇÃO DO TRABALHADOR  (NR-7 §7.5.19.1-II)
+         ============================================================ -->
+        <div class="section avoid-break">
+          <div class="section-title">I — Identificação do Trabalhador</div>
+          <div class="section-body">
+            <table class="data-grid">
+              <tr>
+                <td class="label">Nome:</td>
+                <td class="value" colspan="3">{{ paciente.nome }}</td>
+              </tr>
+              <tr>
+                <td class="label">CPF:</td>
+                <td class="value">{{ paciente.cpf }}</td>
+                <td class="label">Função:</td>
+                <td class="value">{{ funcao_do_paciente }}</td>
+              </tr>
+              {% if setor %}
+              <tr>
+                <td class="label">Setor:</td>
+                <td class="value" colspan="3">{{ setor }}</td>
+              </tr>
+              {% endif %}
+            </table>
+          </div>
+        </div>
+
+        <!-- ============================================================
+         II. IDENTIFICAÇÃO DA ORGANIZAÇÃO  (NR-7 §7.5.19.1-I)
+         ============================================================ -->
+        <div class="section avoid-break">
+          <div class="section-title">II — Organização</div>
+          <div class="section-body">
+            <table class="data-grid">
+              <tr>
+                <td class="label">Razão Social:</td>
+                <td class="value">{{ empresa.nome }}</td>
+                <td class="label">CNPJ:</td>
+                <td class="value">{{ empresa.cnpj }}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- ============================================================
+         III. TIPO DE EXAME MÉDICO OCUPACIONAL
+         ============================================================ -->
+        <div class="section avoid-break">
+          <div class="section-title">III — Exame Médico Ocupacional</div>
+          <div class="section-body">
+            <table class="data-grid">
+              <tr>
+                <td class="label">Tipo:</td>
+                <td class="value">
+                  <strong>{{ tipo_de_exame.exame }}</strong>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- ============================================================
+         IV. RISCOS OCUPACIONAIS  (NR-7 §7.5.19.1-III)
+         ============================================================ -->
+        <div class="section avoid-break">
+          <div class="section-title">IV — Riscos Ocupacionais (PGR/PCMSO)</div>
+          <div class="section-body">
+            {% set riscos_preenchidos = [] %} {% for tipo, descricao in
+            riscos.items() %} {% if descricao %} {% if
+            riscos_preenchidos.append(1) %}{% endif %} {% endif %} {% endfor %}
+            {% if riscos_preenchidos %}
+            <table class="nr-table">
+              <thead>
+                <tr>
+                  <th style="width: 28%">Agente / Fator</th>
+                  <th>Descrição</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% set label_map = { 'fisico': 'Físico', 'quimico': 'Químico',
+                'biologico': 'Biológico', 'ergonomico': 'Ergonômico',
+                'acidente': 'Risco de Acidente' } %} {% for tipo, descricao in
+                riscos.items() %} {% if descricao %}
+                <tr>
+                  <td>
+                    <strong>{{ label_map.get(tipo, tipo|capitalize) }}</strong>
+                  </td>
+                  <td>{{ descricao }}</td>
+                </tr>
+                {% endif %} {% endfor %}
+              </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted text-sm" style="padding: 2px 6px">
+              Ausência de riscos ocupacionais específicos identificados.
+            </p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- ============================================================
+         V. EXAMES COMPLEMENTARES  (NR-7 §7.5.19.1-IV)
+         ============================================================ -->
+        {% if exames_solicitados and exames_solicitados.exames %}
+        <div class="section avoid-break">
+          <div class="section-title">
+            V — Procedimentos Médicos / Exames Complementares
+          </div>
+          <div class="section-body">
+            <ul class="compact-list list-2col">
+              {% for exame in exames_solicitados.exames %}
+              <li>{{ exame }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- ============================================================
+         VI. CONCLUSÃO MÉDICA  (NR-7 §7.5.19.1-V)
+         ============================================================ -->
+        <div class="section avoid-break">
+          <div class="section-title">VI — Conclusão Médica</div>
+          <div class="section-body">
+            {% set status_lower = conclusao.status|lower %} {% if 'inapto' in
+            status_lower and 'apto' not in status_lower %} {% set css_class =
+            'inapto' %} {% elif 'restr' in status_lower %} {% set css_class =
+            'restricao' %} {% else %} {% set css_class = 'apto' %} {% endif %}
+
+            <div class="conclusao-box {{ css_class }}">
+              <div class="conclusao-label">
+                Resultado do exame clínico ocupacional
+              </div>
+              <div class="conclusao-status">{{ conclusao.status }}</div>
+            </div>
+
+            {% if restricoes %}
+            <div class="obs-box" style="margin-top: 6px">
+              <strong style="color: var(--cor-restricao)">Restrições:</strong>
+              {{ restricoes }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- ============================================================
+         VII. NORMAS REGULAMENTADORAS
+         ============================================================ -->
+        {% set has_nrs = false %} {% for nr, status in nrs.items() %} {% if
+        status %}{% set has_nrs = true %}{% endif %} {% endfor %} {% if has_nrs
+        or manipulacao_de_alimentos %}
+        <div class="section avoid-break">
+          <div class="section-title">VII — Normas Regulamentadoras</div>
+          <div class="section-body">
+            {% set nr_label_map = { 'nr7': 'NR-7 — PCMSO', 'nr9': 'NR-9 —
+            Avaliação e Controle de Exposições', 'nr15': 'NR-15 — Atividades
+            Insalubres', 'nr16': 'NR-16 — Atividades Perigosas', 'nr17': 'NR-17
+            — Ergonomia', 'nr35': 'NR-35 — Trabalho em Altura' } %}
+
+            <table class="nr-table">
+              <thead>
+                <tr>
+                  <th style="width: 55%">Norma</th>
+                  <th>Situação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for nr, status in nrs.items() %} {% if status %}
+                <tr>
+                  <td>{{ nr_label_map.get(nr, nr|upper) }}</td>
+                  <td>
+                    {% set s = status|lower %} {% if s == 'conforme' or s ==
+                    'Conforme' %}
+                    <span class="nr-status-conforme">✓ Conforme</span>
+                    {% elif 'não' in s or 'nao' in s %}
+                    <span class="nr-status-nao-conforme">✗ Não conforme</span>
+                    {% else %}
+                    <span class="nr-status-na">{{ status }}</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endif %} {% endfor %} {% if manipulacao_de_alimentos %}
+                <tr>
+                  <td>Manipulação de Alimentos</td>
+                  <td>
+                    {% set ma = manipulacao_de_alimentos|lower %} {% if 'apto'
+                    in ma and 'inapto' not in ma %}
+                    <span class="nr-status-conforme"
+                      >✓ {{ manipulacao_de_alimentos }}</span
+                    >
+                    {% elif 'inapto' in ma %}
+                    <span class="nr-status-nao-conforme"
+                      >✗ {{ manipulacao_de_alimentos }}</span
+                    >
+                    {% else %}
+                    <span class="nr-status-na"
+                      >{{ manipulacao_de_alimentos }}</span
+                    >
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- ============================================================
+         OBSERVAÇÕES (opcional)
+         ============================================================ -->
+        {% if observacoes %}
+        <div class="section avoid-break">
+          <div class="section-title">Observações</div>
+          <div class="section-body">
+            <div class="obs-box neutral">{{ observacoes }}</div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- ============================================================
+       BLOCO FINAL FIXADO NO RODAPÉ DA FOLHA
+       ============================================================ -->
+      <div class="bottom">
+        <!-- ============================================================
+         ASSINATURA DO MÉDICO  (NR-7 §7.5.19.1-VI/VII)
+         ============================================================ -->
+        <div class="signature-area avoid-break">
+          <div class="signature-block">
+            <div class="signature-line"></div>
+            <div class="signature-name">{{ medico.nome }}</div>
+            <div class="signature-detail">CRM {{ medico.crm }}</div>
+            <div class="signature-detail">Médico Examinador</div>
+          </div>
+          <div class="signature-block">
+            <div class="signature-line"></div>
+            <div class="signature-name">{{ paciente.nome }}</div>
+            <div class="signature-detail">CPF {{ paciente.cpf }}</div>
+            <div class="signature-detail">Trabalhador(a)</div>
+          </div>
+        </div>
+
+        <!-- ============================================================
+         NOTA LEGAL
+         ============================================================ -->
+        <div class="legal-note">
+          Este Atestado de Saúde Ocupacional foi emitido em conformidade com a
+          Norma Regulamentadora nº 7 (NR-7) do Ministério do Trabalho e Emprego,
+          Portaria MTP nº 567/2022, e atende aos requisitos do item 7.5.19.1. O
+          ASO deve ser emitido em duas vias: uma via para a organização e outra
+          comprovadamente disponibilizada ao empregado (§7.5.19). O prontuário
+          médico individual deve ser mantido por no mínimo 20 anos após o
+          desligamento do trabalhador (§7.6.1.1).
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

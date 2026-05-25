@@ -1,0 +1,2 @@
+"""Rooms domain module."""
+

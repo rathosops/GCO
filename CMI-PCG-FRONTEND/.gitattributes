@@ -1,0 +1,161 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Explicitly declare text files you want to always be normalized and converted
+# to native line endings on checkout.
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.html text eol=lf
+*.xml text eol=lf
+*.txt text eol=lf
+*.svg text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Configuration files
+*.conf text eol=lf
+*.config text eol=lf
+*.ini text eol=lf
+*.toml text eol=lf
+Dockerfile text eol=lf
+.env* text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+.editorconfig text eol=lf
+.npmrc text eol=lf
+.eslintrc* text eol=lf
+.prettierrc* text eol=lf
+
+# Package manager files
+package.json text eol=lf
+package-lock.json text eol=lf
+yarn.lock text eol=lf
+pnpm-lock.yaml text eol=lf
+
+# TypeScript config
+tsconfig.json text eol=lf
+tsconfig.*.json text eol=lf
+
+# Build tool configs
+vite.config.* text eol=lf
+webpack.config.* text eol=lf
+rollup.config.* text eol=lf
+tailwind.config.* text eol=lf
+postcss.config.* text eol=lf
+
+# Windows script files should keep CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary files (these should not be modified)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.avif binary
+*.mov binary
+*.mp4 binary
+*.mp3 binary
+*.webm binary
+*.ogg binary
+*.flv binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.tar binary
+*.7z binary
+*.rar binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.otf binary
+
+# Archives
+*.jar binary
+*.war binary
+*.ear binary
+*.class binary
+
+# Executables
+*.exe binary
+*.dll binary
+*.so binary
+*.dylib binary
+
+# Database files
+*.sqlite binary
+*.db binary
+
+# Lockfiles - treat as binary to avoid merge conflicts
+package-lock.json binary
+yarn.lock binary
+pnpm-lock.yaml binary
+
+# Git LFS (Large File Storage) - descomente se usar
+# *.psd filter=lfs diff=lfs merge=lfs -text
+# *.ai filter=lfs diff=lfs merge=lfs -text
+# *.sketch filter=lfs diff=lfs merge=lfs -text
+
+# Linguist - configuração para estatísticas do GitHub
+# Arquivos a serem ignorados nas estatísticas
+*.md linguist-documentation
+*.json linguist-generated=true
+package-lock.json linguist-generated=true
+yarn.lock linguist-generated=true
+pnpm-lock.yaml linguist-generated=true
+
+# Definir a linguagem principal do projeto
+*.tsx linguist-language=TypeScript
+*.ts linguist-language=TypeScript
+*.jsx linguist-language=JavaScript
+*.js linguist-language=JavaScript
+
+# Diretórios a serem ignorados
+dist/** linguist-generated=true
+build/** linguist-generated=true
+coverage/** linguist-generated=true
+node_modules/** linguist-vendored
+
+# Prevent merge conflicts in generated files
+*.lock merge=ours
+*.log merge=ours
+
+# Diff settings for specific file types
+*.ts diff=typescript
+*.tsx diff=typescript
+*.js diff=javascript
+*.jsx diff=javascript
+*.json diff=json
+*.md diff=markdown
+*.css diff=css
+*.html diff=html
+
+# Export-ignore (arquivos não incluídos em git archive)
+.gitattributes export-ignore
+.gitignore export-ignore
+.github export-ignore
+.vscode export-ignore
+.editorconfig export-ignore
+.eslintrc* export-ignore
+.prettierrc* export-ignore
+*.test.ts export-ignore
+*.test.tsx export-ignore
+*.spec.ts export-ignore
+*.spec.tsx export-ignore
+__tests__/ export-ignore
+tests/ export-ignore
+test/ export-ignore
+*.md export-ignore
+LICENSE export-ignore

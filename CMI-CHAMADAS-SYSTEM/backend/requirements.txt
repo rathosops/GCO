@@ -1,0 +1,42 @@
+# ============================================
+# CMI Sistema de Chamadas - Dependências Backend
+# ============================================
+
+# Framework
+fastapi>=0.115.6
+uvicorn[standard]>=0.32.0
+
+# Database
+sqlalchemy>=2.0.36
+psycopg2-binary>=2.9.11
+alembic>=1.14.0
+
+# Redis
+redis>=5.2.0
+
+# Auth
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+
+# Validação
+pydantic>=2.10.0
+pydantic-settings>=2.6.0
+email-validator>=2.2.0
+
+# Utilitários
+python-multipart>=0.0.17
+python-dateutil>=2.9.0
+pytz>=2024.2
+
+# Logs
+loguru>=0.7.2
+
+# Dev/Test
+pytest>=8.3.0
+pytest-asyncio>=0.24.0
+httpx>=0.28.0
+
+# Qualidade de código / lint / tipos
+pylint>=3.2.0
+ruff>=0.4.0
+mypy>=1.10.0

@@ -1,0 +1,226 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * CMI Sistema de Chamadas - CSS Otimizado para TV Samsung
+ *
+ * Otimizações:
+ * - Sem backdrop-filter (muito pesado para TV)
+ * - Animações apenas com transform/opacity (GPU)
+ * - Menos keyframes
+ * - will-change controlado
+ */
+
+:root {
+  --primary-100: #FF6600;
+  --primary-200: #ff983f;
+
+  --text-100: #1d1f21;
+  --text-200: #444648;
+
+  --bg-100: #ffffff;
+  --bg-200: #f5f5f5;
+
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* ========== Base ========== */
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-100);
+    color: var(--text-100);
+    line-height: 1.5;
+    /* Previne problemas de scroll em TV */
+    overflow-x: hidden;
+  }
+}
+
+/* ========== Componentes ========== */
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
+           font-medium text-sm rounded-xl
+           disabled:opacity-50 disabled:cursor-not-allowed;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+
+  .btn:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .btn-primary {
+    @apply btn text-white;
+    background: var(--primary-100);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+
+  .btn-secondary {
+    @apply btn bg-gray-100 text-gray-700;
+  }
+
+  .btn-success {
+    @apply btn bg-emerald-500 text-white;
+  }
+
+  .btn-danger {
+    @apply btn bg-red-500 text-white;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl;
+    box-shadow: var(--shadow-card);
+  }
+
+  .input {
+    @apply w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl
+           text-gray-900 placeholder:text-gray-400
+           focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500;
+    transition: border-color 0.15s ease;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .badge-primary {
+    @apply badge text-orange-700;
+    background: rgba(255, 102, 0, 0.15);
+  }
+
+  .badge-success {
+    @apply badge bg-emerald-100 text-emerald-700;
+  }
+
+  .badge-warning {
+    @apply badge bg-amber-100 text-amber-700;
+  }
+
+  .badge-danger {
+    @apply badge bg-red-100 text-red-700;
+  }
+
+  .status-dot {
+    @apply w-3 h-3 rounded-full;
+  }
+
+  .status-dot-success {
+    @apply status-dot bg-emerald-500;
+  }
+
+  .status-dot-warning {
+    @apply status-dot bg-amber-500;
+  }
+
+  .status-dot-danger {
+    @apply status-dot bg-red-500;
+  }
+}
+
+/* ========== Animações GPU-only ========== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-simple {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-pulse-simple {
+  animation: pulse-simple 2s ease-in-out infinite;
+}
+
+/* ========== Scrollbar (simplificado) ========== */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+/* ========== TV-specific ========== */
+
+/* Desativa animações se o usuário preferir */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Foco visível para navegação por controle remoto */
+*:focus-visible {
+  outline: 3px solid var(--primary-100);
+  outline-offset: 2px;
+}
+
+/* Evita seleção de texto acidental em TV */
+.painel-tv {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Força aceleração de hardware em elementos animados */
+.gpu-accelerated {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+/* Background gradiente otimizado (sem blur) */
+.bg-painel {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+}
+
+/* Utilitário para texto gradiente */
+.text-gradient {
+  background: linear-gradient(135deg, var(--primary-100), var(--primary-200));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

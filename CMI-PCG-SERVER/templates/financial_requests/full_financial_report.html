@@ -1,0 +1,965 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Relatório Financeiro</title>
+    <style>
+      @page {
+        size: A4 landscape;
+        margin: 20mm;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 11px;
+        margin: 0;
+        padding: 0;
+        color: #333;
+        background: #fff;
+      }
+
+      .container {
+        padding: 20px 20px;
+        max-width: 1123px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        font-weight: 700;
+        font-size: 22px;
+        text-align: center;
+        color: #004085;
+        margin-bottom: 8px;
+        border-bottom: 2px solid #004085;
+        padding-bottom: 6px;
+      }
+
+      .header-info {
+        text-align: center;
+        margin-bottom: 18px;
+      }
+
+      .mes-referencia {
+        font-size: 14px;
+        font-weight: 700;
+        color: #ffffff;
+        background: #004085;
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 20px;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .periodo {
+        font-size: 13px;
+        margin-bottom: 2px;
+        color: #0056b3;
+      }
+      .gerado-em {
+        font-size: 10px;
+        color: #666;
+      }
+
+      .kpi-cards {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 18px 0;
+      }
+
+      .kpi-card {
+        flex: 1 1 160px;
+        background: #f1f7ff;
+        border: 1px solid #cfdff7;
+        border-radius: 10px;
+        padding: 8px 10px;
+        box-sizing: border-box;
+      }
+
+      .kpi-card-strong {
+        background: #004085;
+        border-color: #004085;
+        color: #ffffff;
+      }
+
+      .kpi-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 4px;
+        color: #555;
+      }
+
+      .kpi-card-strong .kpi-label {
+        color: #d0e4ff;
+      }
+
+      .kpi-value {
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .kpi-subtitle {
+        font-size: 9px;
+        margin-top: 2px;
+        color: #f0f0f0;
+      }
+      .kpi-muted {
+        color: #888;
+        font-size: 11px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 24px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        table-layout: fixed;
+      }
+
+      thead tr {
+        background-color: #0056b3;
+        color: white;
+      }
+
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 6px 5px;
+        text-align: center;
+        font-size: 10.5px;
+        word-wrap: break-word;
+      }
+
+      tbody tr:nth-child(odd) {
+        background-color: #f9f9f9;
+      }
+      tbody tr:hover {
+        background-color: #d0e7ff;
+      }
+
+      th {
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        font-size: 11px;
+      }
+
+      td.numeric {
+        font-variant-numeric: tabular-nums;
+      }
+
+      .footer {
+        max-width: 420px;
+        margin-left: auto;
+        font-size: 13px;
+        border-top: 2px solid #0056b3;
+        padding-top: 12px;
+        color: #004085;
+        font-weight: 600;
+        margin-bottom: 18px;
+      }
+
+      .footer p {
+        margin: 4px 0;
+      }
+
+      .summary-section {
+        margin-top: 10px;
+      }
+
+      .summary-section h2,
+      .top-section h2,
+      .notes-section h2,
+      .last-page h2 {
+        font-size: 14px;
+        color: #004085;
+        margin: 0 0 8px 0;
+        border-left: 4px solid #004085;
+        padding-left: 8px;
+      }
+
+      .summary-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 6px;
+        table-layout: fixed;
+        font-size: 10px;
+      }
+
+      .summary-table thead tr {
+        background-color: #0069d9;
+        color: #fff;
+      }
+
+      .summary-table th,
+      .summary-table td {
+        border: 1px solid #ddd;
+        padding: 4px 3px;
+        text-align: center;
+        word-wrap: break-word;
+      }
+
+      .summary-table td.numeric {
+        font-variant-numeric: tabular-nums;
+      }
+
+      .bar-wrapper {
+        position: relative;
+        width: 100%;
+        height: 14px;
+        background: #e9ecef;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .bar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        background: #17a2b8;
+        border-radius: 8px;
+      }
+
+      .bar-label {
+        position: absolute;
+        right: 4px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 9px;
+        color: #ffffff;
+        font-weight: 600;
+        text-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
+      }
+
+      .summary-note {
+        font-size: 9px;
+        color: #555;
+        margin-top: 2px;
+      }
+
+      .top-section {
+        margin-top: 16px;
+        margin-bottom: 16px;
+      }
+      .top-columns {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .top-block {
+        flex: 1 1 32%;
+      }
+
+      .top-block h3 {
+        font-size: 12px;
+        margin: 4px 0;
+        color: #0056b3;
+      }
+
+      .notes-section {
+        margin-top: 18px;
+      }
+      .notes-lines {
+        margin-top: 6px;
+      }
+      .note-line {
+        border-bottom: 1px solid #ccc;
+        height: 14px;
+        margin-bottom: 6px;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 9px;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      .badge-pf {
+        background: #d4edda;
+        color: #155724;
+      }
+      .badge-pj {
+        background: #cce5ff;
+        color: #004085;
+      }
+      .badge-na {
+        background: #f8f9fa;
+        color: #6c757d;
+      }
+
+      .muted {
+        color: #777;
+      }
+
+      @media print {
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .container {
+          padding: 0;
+          max-width: none;
+          margin: 0;
+        }
+        table {
+          page-break-inside: auto;
+        }
+        tr {
+          page-break-inside: avoid;
+          page-break-after: auto;
+        }
+        thead {
+          display: table-header-group;
+        }
+        tfoot {
+          display: table-footer-group;
+        }
+      }
+
+      /* ===== ÚLTIMA PÁGINA – A4 LANDSCAPE PERFEITA (MAIS LEGÍVEL) ===== */
+      .page-break {
+        page-break-before: always;
+        break-before: page;
+      }
+
+      .last-page {
+        margin-top: 6px;
+        font-size: 11px;
+      } /* +1 */
+
+      .last-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 12px; /* + */
+        border: 1px solid #cfe0f7;
+        background: #f3f8ff;
+        border-radius: 10px;
+        margin-bottom: 10px; /* + */
+      }
+
+      .last-title {
+        font-size: 14px;
+        font-weight: 800;
+        color: #004085;
+      } /* + */
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr 1fr;
+        gap: 10px; /* + */
+        align-items: start;
+        margin-bottom: 10px; /* + */
+      }
+
+      .summary-card {
+        border: 1px solid #e1e8f5;
+        background: #ffffff;
+        border-radius: 10px;
+        padding: 10px 12px; /* + */
+      }
+
+      .summary-card.primary {
+        background: linear-gradient(180deg, #004085 0%, #0056b3 100%);
+        color: #fff;
+      }
+
+      .card-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        opacity: 0.9;
+      } /* + */
+      .card-value {
+        font-size: 18px;
+        font-weight: 900;
+        margin: 6px 0;
+      } /* + */
+      .card-sub {
+        font-size: 10px;
+        opacity: 0.9;
+      } /* + */
+
+      .mini-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        margin: 0;
+        box-shadow: none;
+      }
+
+      .mini-table th,
+      .mini-table td {
+        border: 1px solid #e6e6e6;
+        padding: 6px 7px; /* + */
+        font-size: 10.5px; /* + */
+        text-align: left;
+      }
+
+      .mini-table thead tr {
+        background: #eef5ff;
+        color: #004085;
+      }
+
+      .mini-table td.numeric,
+      .mini-table th.numeric {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .bottom-grid {
+        display: grid;
+        grid-template-columns: 1fr; /* só checklist agora */
+        gap: 10px;
+      }
+
+      .obs-box {
+        border: 1px solid #e1e8f5;
+        border-radius: 10px;
+        padding: 10px 12px; /* + */
+        background: #fff;
+      }
+
+      .obs-item {
+        font-size: 10.5px; /* + */
+        padding: 7px 8px; /* + */
+        margin-bottom: 6px; /* + */
+        border-radius: 8px;
+        background: #f6f9ff;
+        border: 1px solid #e6edff;
+        line-height: 1.25;
+      }
+    </style>
+  </head>
+
+  <body>
+    {# ===================== NORMALIZAÇÃO GLOBAL (ANTI-ERRO)
+    ===================== #} {% macro money(v) -%}{{ "%.2f"|format((v|default(0,
+    true))) }}{%- endmacro %} {% macro pct(v) -%}{{ "%.1f"|format((v|default(0,
+    true))) }}{%- endmacro %} {% set total_recebido_safe =
+    total_recebido|default(0, true) %} {% set total_descontos_safe =
+    total_descontos|default(0, true) %} {% set faturamento_bruto_safe =
+    faturamento_bruto|default(0, true) %} {% set faturamento_liquido_safe =
+    faturamento_liquido|default(0, true) %} {% set total_lancamentos_safe =
+    total_lancamentos|default(0, true) %} {% set num_pacientes_atendidos_safe =
+    num_pacientes_atendidos|default(0, true) %} {% set
+    ticket_medio_pagamento_safe = ticket_medio_pagamento|default(none, true) %}
+    {% set ticket_medio_paciente_safe = ticket_medio_paciente|default(none,
+    true) %}
+
+    <div class="container">
+      <h1>Clínica CMI - Relatório Financeiro</h1>
+
+      <div class="header-info">
+        <div class="mes-referencia">
+          Mês de referência: {{ mes_referencia|default("-", true) }}
+        </div>
+        <div class="periodo">
+          <strong>Período:</strong> {{ data_inicio|default("-", true) }} até {{
+          data_fim|default("-", true) }}
+        </div>
+        <div class="gerado-em">
+          Gerado em {{ gerado_em|default("-", true) }} (horário de Brasília)
+        </div>
+      </div>
+
+      <!-- KPI CARDS -->
+      <div class="kpi-cards">
+        <div class="kpi-card kpi-card-strong">
+          <div class="kpi-label">Faturamento bruto</div>
+          <div class="kpi-value">R$ {{ money(faturamento_bruto_safe) }}</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">Faturamento líquido</div>
+          <div class="kpi-value">R$ {{ money(faturamento_liquido_safe) }}</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">Ticket médio por pagamento</div>
+          <div class="kpi-value">
+            {% if ticket_medio_pagamento_safe is not none %} R$ {{
+            money(ticket_medio_pagamento_safe) }} {% else %}
+            <span class="kpi-muted">N/D</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">Ticket médio por paciente</div>
+          <div class="kpi-value">
+            {% if num_pacientes_atendidos_safe > 0 and
+            ticket_medio_paciente_safe is not none %} R$ {{
+            money(ticket_medio_paciente_safe) }} {% else %}
+            <span class="kpi-muted">N/D</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">Pacientes atendidos</div>
+          <div class="kpi-value">{{ num_pacientes_atendidos_safe }}</div>
+        </div>
+
+        {% if possui_comparativo_anterior|default(false, true) %}
+        <div class="kpi-card kpi-card-strong">
+          <div class="kpi-label">Variação vs período anterior</div>
+          {% if comparativo_liquido_anterior_pct is defined and
+          comparativo_liquido_anterior_pct is not none %}
+          <div class="kpi-value">
+            {{ pct(comparativo_liquido_anterior_pct) }}%
+          </div>
+          <div class="kpi-subtitle">
+            {{ "Crescimento" if comparativo_liquido_anterior_pct >= 0 else
+            "Queda" }}
+          </div>
+          {% else %}
+          <div class="kpi-value"><span class="kpi-muted">N/D</span></div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- TABELA PRINCIPAL (SEMPRE ORDENADA POR DATA) -->
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Paciente</th>
+            <th>Empresa</th>
+            <th>Convênio</th>
+            <th>Origem</th>
+            <th>Tipo</th>
+            <th>Conta Dest.</th>
+            <th>Valor (R$)</th>
+            <th>Desc.?</th>
+            <th>Desc. (R$)</th>
+            <th>Líquido (R$)</th>
+            <th>Parc.</th>
+            {% if possui_observacoes|default(false, true) %}
+            <th>Obs.</th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for pagamento in (pagamentos|default([],
+          true))|sort(attribute='data') %} {% set valor =
+          pagamento.valor|default(0, true) %} {% set desconto =
+          pagamento.valor_desconto|default(0, true) %} {% set liquido = (valor -
+          desconto) %}
+          <tr>
+            <td>
+              {{ pagamento.data.strftime('%d/%m/%Y') if pagamento.data else "-"
+              }}
+            </td>
+            <td>
+              {{ pagamento.paciente.nome if pagamento.paciente else
+              (pagamento.nome_do_paciente or 'N/A') }}
+            </td>
+            <td>
+              {{ pagamento.nome_empresa or (pagamento.paciente.empresa.nome if
+              pagamento.paciente and pagamento.paciente.empresa else 'N/A') }}
+            </td>
+            <td>
+              {{ pagamento.nome_convenio or (pagamento.paciente.convenio.nome if
+              pagamento.paciente and pagamento.paciente.convenio else 'N/A') }}
+            </td>
+            <td>{{ pagamento.origem or "-" }}</td>
+            <td>{{ pagamento.tipo or "-" }}</td>
+
+            <td>
+              {% if pagamento.tipo == 'PIX' %} {% if
+              pagamento.conta_destinada_pix == 'PF' %}
+              <span class="badge badge-pf">PF</span>
+              {% elif pagamento.conta_destinada_pix == 'PJ' %}
+              <span class="badge badge-pj">PJ</span>
+              {% else %}
+              <span class="badge badge-na">-</span>
+              {% endif %} {% else %}
+              <span class="badge badge-na">-</span>
+              {% endif %}
+            </td>
+
+            <td class="numeric">{{ money(valor) }}</td>
+            <td>{{ "Sim" if desconto else "Não" }}</td>
+            <td class="numeric">{{ money(desconto) }}</td>
+            <td class="numeric">{{ money(liquido) }}</td>
+            <td>{{ pagamento.qtd_parcelas_credito or "-" }}</td>
+
+            {% if possui_observacoes|default(false, true) %}
+            <td>{{ pagamento.descricao or "-" }}</td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- FOOTER RESUMO GERAL -->
+      <div class="footer">
+        <p>
+          Total Recebido (Pagamentos + Exames): R$ {{ money(total_recebido_safe)
+          }}
+        </p>
+        <p>
+          Total em Descontos (apenas pagamentos): R$ {{
+          money(total_descontos_safe) }}
+        </p>
+        <p>
+          Saldo Final (Recebido - Descontos): R$ {{ money(total_recebido_safe -
+          total_descontos_safe) }}
+        </p>
+        <p>
+          Total de lançamentos de pagamentos no período: {{
+          total_lancamentos_safe }}
+        </p>
+      </div>
+
+      <!-- RESUMO POR FORMA DE PAGAMENTO -->
+      {% if resumo_por_tipo|default([], true) %}
+      <div class="summary-section">
+        <h2>Resumo por Forma de Pagamento</h2>
+        <table class="summary-table">
+          <thead>
+            <tr>
+              <th>Forma de Pagamento</th>
+              <th>Qtd. Lanç.</th>
+              <th>Total Bruto (R$)</th>
+              <th>Descontos (R$)</th>
+              <th>Total Líquido (R$)</th>
+              <th>Participação</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in resumo_por_tipo %}
+            <tr>
+              <td>{{ item.tipo|default("-", true) }}</td>
+              <td class="numeric">{{ item.quantidade|default(0, true) }}</td>
+              <td class="numeric">
+                {{ money(item.total_bruto|default(0, true)) }}
+              </td>
+              <td class="numeric">
+                {{ money(item.total_descontos|default(0, true)) }}
+              </td>
+              <td class="numeric">
+                {{ money(item.total_liquido|default(0, true)) }}
+              </td>
+              <td>
+                <div class="bar-wrapper">
+                  <div
+                    class="bar"
+                    style="width: {{ item.percentual_liquido|default(0, true) }}%;"
+                  ></div>
+                  <span class="bar-label"
+                    >{{ pct(item.percentual_liquido|default(0, true)) }}%</span
+                  >
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <p class="summary-note">
+          Os percentuais representam a participação do valor líquido de cada
+          forma de pagamento no total recebido em pagamentos no período. {{
+          total_lancamentos_safe }} lançamentos de pagamentos no período.
+        </p>
+      </div>
+      {% endif %} {% if resumo_pix_por_conta_destinada|default([], true) %}
+      <div class="summary-section">
+        <h2>Destinação do dinheiro (Conta PF vs Conta PJ)</h2>
+        <table class="summary-table">
+          <thead>
+            <tr>
+              <th>Conta Destino</th>
+              <th>Qtd. Lanç.</th>
+              <th>Total Bruto (R$)</th>
+              <th>Descontos (R$)</th>
+              <th>Total Líquido (R$)</th>
+              <th>Participação</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in resumo_pix_por_conta_destinada %}
+            <tr>
+              <td>
+                {% if item.conta_destinada == 'PF' %}
+                <span class="badge badge-pf">Conta PF</span>
+                {% elif item.conta_destinada == 'PJ' %}
+                <span class="badge badge-pj">Conta PJ</span>
+                {% else %}
+                <span class="badge badge-na">Não informado</span>
+                {% endif %}
+              </td>
+              <td class="numeric">{{ item.quantidade|default(0, true) }}</td>
+              <td class="numeric">
+                {{ money(item.total_bruto|default(0, true)) }}
+              </td>
+              <td class="numeric">
+                {{ money(item.total_descontos|default(0, true)) }}
+              </td>
+              <td class="numeric">
+                {{ money(item.total_liquido|default(0, true)) }}
+              </td>
+              <td>
+                <div class="bar-wrapper">
+                  <div
+                    class="bar"
+                    style="width: {{ item.percentual_liquido|default(0, true) }}%;"
+                  ></div>
+                  <span class="bar-label"
+                    >{{ pct(item.percentual_liquido|default(0, true)) }}%</span
+                  >
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <p class="summary-note">
+          Comparativo do valor líquido destinado para Conta PF vs Conta PJ
+          (somente PIX).
+        </p>
+      </div>
+      {% endif %}
+
+      <!-- TOP N CLIENTES -->
+      {% if top_empresas|default([], true) or top_convenios|default([], true) or
+      top_pacientes|default([], true) %}
+      <div class="top-section">
+        <h2>Top clientes por faturamento no período</h2>
+        <div class="top-columns">
+          {% if top_empresas|default([], true) %}
+          <div class="top-block">
+            <h3>Top 5 Empresas</h3>
+            <table class="summary-table">
+              <thead>
+                <tr>
+                  <th>Empresa</th>
+                  <th>Qtd.</th>
+                  <th>Total Líquido (R$)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in top_empresas %}
+                <tr>
+                  <td>{{ item.nome|default("-", true) }}</td>
+                  <td class="numeric">
+                    {{ item.quantidade|default(0, true) }}
+                  </td>
+                  <td class="numeric">
+                    {{ money(item.total_liquido|default(0, true)) }}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% endif %} {% if top_convenios|default([], true) %}
+          <div class="top-block">
+            <h3>Top 5 Convênios</h3>
+            <table class="summary-table">
+              <thead>
+                <tr>
+                  <th>Convênio</th>
+                  <th>Qtd.</th>
+                  <th>Total Líquido (R$)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in top_convenios %}
+                <tr>
+                  <td>{{ item.nome|default("-", true) }}</td>
+                  <td class="numeric">
+                    {{ item.quantidade|default(0, true) }}
+                  </td>
+                  <td class="numeric">
+                    {{ money(item.total_liquido|default(0, true)) }}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% endif %} {% if top_pacientes|default([], true) %}
+          <div class="top-block">
+            <h3>Top 5 Pacientes</h3>
+            <table class="summary-table">
+              <thead>
+                <tr>
+                  <th>Paciente</th>
+                  <th>Qtd.</th>
+                  <th>Total Líquido (R$)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in top_pacientes %}
+                <tr>
+                  <td>{{ item.nome|default("-", true) }}</td>
+                  <td class="numeric">
+                    {{ item.quantidade|default(0, true) }}
+                  </td>
+                  <td class="numeric">
+                    {{ money(item.total_liquido|default(0, true)) }}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- NOTAS DA GESTÃO -->
+      <div class="notes-section">
+        <h2>Observações / Notas da gestão</h2>
+        <div class="notes-lines">
+          <div class="note-line"></div>
+          <div class="note-line"></div>
+          <div class="note-line"></div>
+          <div class="note-line"></div>
+          <div class="note-line"></div>
+          <div class="note-line"></div>
+        </div>
+      </div>
+
+      <!-- ===================== ÚLTIMA PÁGINA ===================== -->
+      <div class="page-break"></div>
+
+      <div class="last-page">
+        <div class="last-header">
+          <div>
+            <div class="last-title">Consolidado do Período</div>
+            <div class="muted">
+              Organizado por data • {{ data_inicio|default("-", true) }} → {{
+              data_fim|default("-", true) }}
+            </div>
+          </div>
+          <div class="muted" style="text-align: right">
+            <strong>{{ mes_referencia|default("-", true) }}</strong><br />
+            Gerado em {{ gerado_em|default("-", true) }} (BRT)
+          </div>
+        </div>
+
+        <div class="summary-grid">
+          <!-- TOTAL (AGORA: FATURAMENTO) -->
+          <div class="summary-card primary">
+            <div class="card-label">Total de faturamento (líquido)</div>
+            <div class="card-value">
+              R$ {{ money(faturamento_liquido_safe) }}
+            </div>
+            <div class="card-sub">
+              Bruto: R$ {{ money(faturamento_bruto_safe) }} • Descontos: R$ {{
+              money(total_descontos_safe) }}
+            </div>
+          </div>
+
+          <!-- ENTRADAS POR TIPO -->
+          <div class="summary-card">
+            <h2>Entradas por pagamento</h2>
+            <table class="mini-table">
+              <thead>
+                <tr>
+                  <th>Forma</th>
+                  <th class="numeric">Total (R$)</th>
+                  <th class="numeric">Qtd</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% set tipos = resumo_por_tipo|default([], true) %} {% if tipos
+                and (tipos|length > 0) %} {% for item in tipos %}
+                <tr>
+                  <td>{{ item.tipo|default("-", true) }}</td>
+                  <td class="numeric">
+                    {{ money(item.total_liquido|default(0, true)) }}
+                  </td>
+                  <td class="numeric">
+                    {{ item.quantidade|default(0, true) }}
+                  </td>
+                </tr>
+                {% endfor %} {% else %}
+                <tr>
+                  <td colspan="3" class="muted">
+                    Sem resumo_por_tipo no contexto.
+                  </td>
+                </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- INDICADORES -->
+          <div class="summary-card">
+            <h2>Indicadores</h2>
+            <table class="mini-table">
+              <tbody>
+                <tr>
+                  <td>Faturamento bruto</td>
+                  <td class="numeric">
+                    R$ {{ money(faturamento_bruto_safe) }}
+                  </td>
+                </tr>
+                <tr>
+                  <td>Faturamento líquido</td>
+                  <td class="numeric">
+                    R$ {{ money(faturamento_liquido_safe) }}
+                  </td>
+                </tr>
+                <tr>
+                  <td>Lançamentos</td>
+                  <td class="numeric">{{ total_lancamentos_safe }}</td>
+                </tr>
+                <tr>
+                  <td>Pacientes</td>
+                  <td class="numeric">{{ num_pacientes_atendidos_safe }}</td>
+                </tr>
+                <tr>
+                  <td>Ticket médio (pagamento)</td>
+                  <td class="numeric">
+                    {% if ticket_medio_pagamento_safe is not none %} R$ {{
+                    money(ticket_medio_pagamento_safe) }} {% else %}-{% endif %}
+                  </td>
+                </tr>
+                <tr>
+                  <td>Ticket médio (paciente)</td>
+                  <td class="numeric">
+                    {% if ticket_medio_paciente_safe is not none %} R$ {{
+                    money(ticket_medio_paciente_safe) }} {% else %}-{% endif %}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="bottom-grid">
+          <!-- CHECKLIST (ÚNICO BLOCO) -->
+          <div class="obs-box">
+            <h2>Checklist executivo</h2>
+            <div class="obs-item">
+              • Conferir entradas por tipo (PIX, Cartão, Dinheiro,
+              Transferência, etc.).
+            </div>
+            <div class="obs-item">
+              • Validar recebidos (Pagamentos + Exames) vs descontos.
+            </div>
+            <div class="obs-item">
+              • Verificar concentração de faturamento (Top clientes).
+            </div>
+            <div class="obs-item">
+              • Confirmar destinação PF/PJ (PIX) quando aplicável.
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- =================== FIM ÚLTIMA PÁGINA =================== -->
+    </div>
+  </body>
+</html>

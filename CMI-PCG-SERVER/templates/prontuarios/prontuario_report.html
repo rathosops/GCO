@@ -1,0 +1,902 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Prontuário Médico - {{ paciente.nome }}</title>
+    <style>
+      /* ========================================
+       CONFIGURAÇÕES DE PÁGINA A4
+       ======================================== */
+      @page {
+        size: A4;
+        margin: 14mm 14mm 18mm 14mm;
+
+        @bottom-center {
+          content: "Página " counter(page) " de " counter(pages);
+          font-family: Arial, sans-serif;
+          font-size: 7pt;
+          color: #888;
+        }
+
+        @bottom-right {
+          content: "Prontuário – {{ paciente.nome }}";
+          font-family: Arial, sans-serif;
+          font-size: 7pt;
+          color: #888;
+        }
+      }
+
+      /* ========================================
+       RESET E BASE
+       ======================================== */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 9pt;
+        color: #333;
+        line-height: 1.45;
+        background: #fff;
+      }
+
+      /* ========================================
+       HEADER / CABEÇALHO
+       ======================================== */
+      .header {
+        display: flex;
+        align-items: center;
+        padding-bottom: 8px;
+        margin-bottom: 12px;
+        border-bottom: 2.5px solid #1565c0;
+      }
+
+      .logo-area {
+        width: 56px;
+        height: 56px;
+        flex-shrink: 0;
+      }
+
+      .logo-area img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      .logo-placeholder {
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: bold;
+        font-size: 11pt;
+      }
+
+      .header-content {
+        flex: 1;
+        text-align: center;
+        padding: 0 10px;
+      }
+
+      .header-content h1 {
+        font-size: 15pt;
+        font-weight: 700;
+        color: #1565c0;
+        margin-bottom: 1px;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+      }
+
+      .header-content .subtitle {
+        font-size: 10pt;
+        color: #455a64;
+        font-weight: 500;
+      }
+
+      .header-content .address {
+        font-size: 7pt;
+        color: #78909c;
+        margin-top: 2px;
+      }
+
+      .header-meta {
+        text-align: right;
+        font-size: 7pt;
+        color: #78909c;
+        flex-shrink: 0;
+      }
+
+      .header-meta .date {
+        font-weight: 600;
+        color: #455a64;
+        font-size: 8pt;
+      }
+
+      /* ========================================
+       DADOS DO PACIENTE (CARD)
+       ======================================== */
+      .paciente-section {
+        background: #f5f7fa;
+        border: 1px solid #cfd8dc;
+        border-radius: 6px;
+        padding: 10px 14px;
+        margin-bottom: 14px;
+      }
+
+      .paciente-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #cfd8dc;
+      }
+
+      .paciente-icon {
+        width: 20px;
+        height: 20px;
+        background: #e3f2fd;
+        color: #1565c0;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10pt;
+        font-weight: bold;
+      }
+
+      .paciente-header-title {
+        font-size: 10pt;
+        font-weight: 600;
+        color: #212529;
+      }
+
+      .paciente-nome {
+        font-size: 12pt;
+        font-weight: 700;
+        color: #1565c0;
+        margin-bottom: 6px;
+      }
+
+      .paciente-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 24px;
+      }
+
+      .paciente-field {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .field-label {
+        font-size: 7pt;
+        color: #78909c;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+
+      .field-value {
+        font-size: 9pt;
+        color: #212529;
+        font-weight: 500;
+      }
+
+      /* ========================================
+       RESUMO / ESTATÍSTICAS
+       ======================================== */
+      .stats-bar {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+
+      .stat-pill {
+        flex: 1;
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 6px 10px;
+        text-align: center;
+      }
+
+      .stat-pill-primary {
+        background: #1565c0;
+        border-color: #1565c0;
+        color: #fff;
+      }
+
+      .stat-number {
+        font-size: 14pt;
+        font-weight: 700;
+      }
+
+      .stat-pill-primary .stat-number {
+        color: #fff;
+      }
+
+      .stat-label {
+        font-size: 7pt;
+        color: #78909c;
+        text-transform: uppercase;
+        letter-spacing: 0.2px;
+      }
+
+      .stat-pill-primary .stat-label {
+        color: #bbdefb;
+      }
+
+      /* ========================================
+       FILTROS APLICADOS
+       ======================================== */
+      .filtros-box {
+        background: #fff8e1;
+        border: 1px solid #ffe082;
+        border-radius: 4px;
+        padding: 5px 10px;
+        margin-bottom: 12px;
+        font-size: 8pt;
+        color: #5d4037;
+      }
+
+      .filtros-box strong {
+        color: #e65100;
+      }
+
+      /* ========================================
+       SEÇÃO DE CONSULTAS
+       ======================================== */
+      .consultas-title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+        border-bottom: 1.5px solid #e0e0e0;
+      }
+
+      .consultas-title-icon {
+        width: 20px;
+        height: 20px;
+        background: #e8f5e9;
+        color: #2e7d32;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10pt;
+        font-weight: bold;
+      }
+
+      .consultas-title h2 {
+        font-size: 11pt;
+        font-weight: 600;
+        color: #212529;
+        flex: 1;
+      }
+
+      /* ========================================
+       CONSULTA CARD
+       ======================================== */
+      .consulta-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        margin-bottom: 12px;
+        overflow: hidden;
+        page-break-inside: avoid;
+      }
+
+      .consulta-header {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border-bottom: 1px solid #90caf9;
+        padding: 7px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .consulta-header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .consulta-seq {
+        background: #1565c0;
+        color: #fff;
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 9pt;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+
+      .consulta-date-time {
+        font-size: 10pt;
+        font-weight: 600;
+        color: #0d47a1;
+      }
+
+      .consulta-date-time .hora {
+        font-weight: 400;
+        color: #1976d2;
+        font-size: 9pt;
+      }
+
+      .consulta-tipo-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 8pt;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        background: #1565c0;
+        color: #fff;
+      }
+
+      .consulta-body {
+        padding: 10px 12px;
+      }
+
+      /* Médico info dentro do card */
+      .medico-info {
+        background: #fafafa;
+        border: 1px solid #eeeeee;
+        border-radius: 4px;
+        padding: 5px 10px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        font-size: 8.5pt;
+      }
+
+      .medico-info .medico-nome {
+        font-weight: 600;
+        color: #212529;
+      }
+
+      .medico-info .medico-detail {
+        color: #78909c;
+      }
+
+      /* Blocos de conteúdo */
+      .content-block {
+        margin-bottom: 7px;
+      }
+
+      .content-block:last-child {
+        margin-bottom: 0;
+      }
+
+      .content-label {
+        font-size: 7.5pt;
+        font-weight: 600;
+        color: #1565c0;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-bottom: 2px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .content-label::before {
+        content: "▸";
+        color: #90caf9;
+        font-size: 8pt;
+      }
+
+      .content-text {
+        font-size: 9pt;
+        color: #333;
+        line-height: 1.5;
+        text-align: justify;
+        white-space: pre-wrap;
+        padding-left: 10px;
+        border-left: 2px solid #e3f2fd;
+      }
+
+      /* Diagnóstico highlight */
+      .diagnostico-box {
+        background: #e8f5e9;
+        border: 1px solid #a5d6a7;
+        border-radius: 4px;
+        padding: 6px 10px;
+        margin-top: 6px;
+      }
+
+      .diagnostico-title {
+        font-size: 7.5pt;
+        font-weight: 600;
+        color: #2e7d32;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-bottom: 2px;
+      }
+
+      .diagnostico-text {
+        font-size: 9pt;
+        color: #1b5e20;
+        font-weight: 500;
+      }
+
+      .cid-tag {
+        display: inline-block;
+        background: #fff;
+        border: 1px solid #81c784;
+        border-radius: 3px;
+        padding: 1px 6px;
+        font-size: 7.5pt;
+        font-weight: 600;
+        color: #2e7d32;
+        margin-left: 6px;
+      }
+
+      /* Prescrições e flags */
+      .flags-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 6px;
+      }
+
+      .flag-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-size: 7.5pt;
+        font-weight: 600;
+      }
+
+      .flag-chip-yes {
+        background: #fff3e0;
+        border: 1px solid #ffb74d;
+        color: #e65100;
+      }
+
+      .flag-chip-no {
+        background: #f5f5f5;
+        border: 1px solid #e0e0e0;
+        color: #9e9e9e;
+      }
+
+      .flag-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+      }
+
+      .flag-dot-yes {
+        background: #ff9800;
+      }
+      .flag-dot-no {
+        background: #bdbdbd;
+      }
+
+      /* Retorno */
+      .retorno-box {
+        background: #e8eaf6;
+        border: 1px solid #9fa8da;
+        border-radius: 4px;
+        padding: 5px 10px;
+        margin-top: 6px;
+        font-size: 8.5pt;
+        color: #283593;
+      }
+
+      .retorno-box strong {
+        font-weight: 600;
+      }
+
+      /* Observações internas */
+      .obs-box {
+        background: #fff8e1;
+        border: 1px solid #ffe082;
+        border-radius: 4px;
+        padding: 5px 10px;
+        margin-top: 6px;
+      }
+
+      .obs-label {
+        font-size: 7pt;
+        font-weight: 600;
+        color: #f57f17;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+      }
+
+      .obs-text {
+        font-size: 8.5pt;
+        color: #5d4037;
+        white-space: pre-wrap;
+      }
+
+      /* Auditoria no footer do card */
+      .consulta-footer {
+        background: #fafafa;
+        border-top: 1px solid #eeeeee;
+        padding: 4px 12px;
+        font-size: 7pt;
+        color: #9e9e9e;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      /* ========================================
+       MENSAGEM VAZIA
+       ======================================== */
+      .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #9e9e9e;
+      }
+
+      .empty-state-icon {
+        font-size: 24pt;
+        margin-bottom: 8px;
+      }
+
+      .empty-state-text {
+        font-size: 10pt;
+        font-style: italic;
+      }
+
+      /* ========================================
+       FOOTER DO DOCUMENTO
+       ======================================== */
+      .document-footer {
+        margin-top: 20px;
+        padding-top: 10px;
+        border-top: 1.5px solid #e0e0e0;
+        text-align: center;
+      }
+
+      .footer-text {
+        font-size: 7pt;
+        color: #9e9e9e;
+        line-height: 1.3;
+      }
+
+      .footer-text strong {
+        color: #78909c;
+      }
+
+      /* ========================================
+       UTILITÁRIOS
+       ======================================== */
+      .separator {
+        border: none;
+        border-top: 1px dashed #e0e0e0;
+        margin: 6px 0;
+      }
+
+      .keep-together {
+        page-break-inside: avoid;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- CABEÇALHO -->
+    <header class="header">
+      <div class="logo-area">
+        {% if logo_path %}
+        <img src="{{ logo_path }}" alt="Logo CMI" />
+        {% else %}
+        <div class="logo-placeholder">CMI</div>
+        {% endif %}
+      </div>
+
+      <div class="header-content">
+        <h1>Prontuário Médico</h1>
+        <div class="subtitle">{{ clinica_nome }}</div>
+        {% if clinica_endereco %}
+        <div class="address">{{ clinica_endereco }}</div>
+        {% endif %}
+      </div>
+
+      <div class="header-meta">
+        <div>Emitido em:</div>
+        <div class="date">{{ data_geracao }}</div>
+      </div>
+    </header>
+
+    <!-- DADOS DO PACIENTE -->
+    <section class="paciente-section">
+      <div class="paciente-header">
+        <div class="paciente-icon">P</div>
+        <span class="paciente-header-title">Identificação do Paciente</span>
+      </div>
+
+      <div class="paciente-nome">{{ paciente.nome }}</div>
+
+      <div class="paciente-grid">
+        <div class="paciente-field">
+          <span class="field-label">CPF</span>
+          <span class="field-value">{{ paciente.cpf_formatado }}</span>
+        </div>
+
+        <div class="paciente-field">
+          <span class="field-label">Data de Nascimento</span>
+          <span class="field-value">{{ paciente.data_nascimento_br }}</span>
+        </div>
+
+        {% if paciente.idade is not none %}
+        <div class="paciente-field">
+          <span class="field-label">Idade</span>
+          <span class="field-value">{{ paciente.idade }} anos</span>
+        </div>
+        {% endif %} {% if paciente.sexo %}
+        <div class="paciente-field">
+          <span class="field-label">Sexo</span>
+          <span class="field-value">{{ paciente.sexo_descritivo }}</span>
+        </div>
+        {% endif %} {% if paciente.telefone %}
+        <div class="paciente-field">
+          <span class="field-label">Contato</span>
+          <span class="field-value">{{ paciente.telefone }}</span>
+        </div>
+        {% endif %} {% if paciente.email %}
+        <div class="paciente-field">
+          <span class="field-label">E-mail</span>
+          <span class="field-value">{{ paciente.email }}</span>
+        </div>
+        {% endif %} {% if paciente.endereco_completo %}
+        <div class="paciente-field">
+          <span class="field-label">Endereço</span>
+          <span class="field-value">{{ paciente.endereco_completo }}</span>
+        </div>
+        {% endif %} {% if paciente.empresa_nome %}
+        <div class="paciente-field">
+          <span class="field-label">Empresa</span>
+          <span class="field-value">{{ paciente.empresa_nome }}</span>
+        </div>
+        {% endif %} {% if paciente.convenio_nome %}
+        <div class="paciente-field">
+          <span class="field-label">Convênio</span>
+          <span class="field-value">{{ paciente.convenio_nome }}</span>
+        </div>
+        {% endif %} {% if paciente.protocolo_imesc %}
+        <div class="paciente-field">
+          <span class="field-label">Protocolo IMESC</span>
+          <span class="field-value">{{ paciente.protocolo_imesc }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- RESUMO ESTATÍSTICO -->
+    <div class="stats-bar">
+      <div class="stat-pill stat-pill-primary">
+        <div class="stat-number">{{ stats.total }}</div>
+        <div class="stat-label">Consultas</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-number">{{ stats.total_medicos }}</div>
+        <div class="stat-label">Médicos</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-number">{{ stats.total_tipos }}</div>
+        <div class="stat-label">Tipos</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-number">{{ stats.com_exame }}</div>
+        <div class="stat-label">Exames Solic.</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-number">{{ stats.com_prescricao }}</div>
+        <div class="stat-label">Prescrições</div>
+      </div>
+      {% if stats.periodo %}
+      <div class="stat-pill">
+        <div class="stat-number" style="font-size: 9pt">
+          {{ stats.periodo }}
+        </div>
+        <div class="stat-label">Período</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- FILTROS APLICADOS (se houver) -->
+    {% if filtros_aplicados %}
+    <div class="filtros-box">
+      <strong>Filtros aplicados:</strong> {{ filtros_aplicados }}
+    </div>
+    {% endif %}
+
+    <!-- HISTÓRICO DE CONSULTAS -->
+    <div class="consultas-title">
+      <div class="consultas-title-icon">H</div>
+      <h2>Histórico de Consultas</h2>
+    </div>
+
+    {% if consultas %} {% for consulta in consultas %}
+    <div class="consulta-card">
+      <!-- Header do card -->
+      <div class="consulta-header">
+        <div class="consulta-header-left">
+          <div class="consulta-seq">{{ loop.index }}</div>
+          <div class="consulta-date-time">
+            {{ consulta.data_br }} {% if consulta.hora %}
+            <span class="hora">às {{ consulta.hora }}</span>
+            {% endif %}
+          </div>
+        </div>
+        {% if consulta.tipo %}
+        <div class="consulta-tipo-badge">{{ consulta.tipo }}</div>
+        {% endif %}
+      </div>
+
+      <!-- Body -->
+      <div class="consulta-body">
+        <!-- Médico -->
+        {% if consulta.nome_medico %}
+        <div class="medico-info">
+          <span class="medico-nome">Dr(a). {{ consulta.nome_medico }}</span>
+          {% if consulta.crm_medico %}
+          <span class="medico-detail">CRM: {{ consulta.crm_medico }}</span>
+          {% endif %} {% if consulta.especialidade_medico %}
+          <span class="medico-detail">{{ consulta.especialidade_medico }}</span>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Queixa Principal -->
+        {% if consulta.queixa_principal %}
+        <div class="content-block">
+          <div class="content-label">Queixa Principal</div>
+          <div class="content-text">{{ consulta.queixa_principal }}</div>
+        </div>
+        {% endif %}
+
+        <!-- HDA -->
+        {% if consulta.historia_doenca_atual %}
+        <div class="content-block">
+          <div class="content-label">História da Doença Atual</div>
+          <div class="content-text">{{ consulta.historia_doenca_atual }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Anamnese -->
+        {% if consulta.anamnese %}
+        <div class="content-block">
+          <div class="content-label">Anamnese</div>
+          <div class="content-text">{{ consulta.anamnese }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Exame Físico -->
+        {% if consulta.exame_fisico %}
+        <div class="content-block">
+          <div class="content-label">Exame Físico</div>
+          <div class="content-text">{{ consulta.exame_fisico }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Procedimentos -->
+        {% if consulta.procedimentos %}
+        <div class="content-block">
+          <div class="content-label">Procedimentos Realizados</div>
+          <div class="content-text">{{ consulta.procedimentos }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Conduta -->
+        {% if consulta.conduta %}
+        <div class="content-block">
+          <div class="content-label">Conduta</div>
+          <div class="content-text">{{ consulta.conduta }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Diagnóstico -->
+        {% if consulta.diagnostico %}
+        <div class="diagnostico-box">
+          <div class="diagnostico-title">Diagnóstico</div>
+          <div class="diagnostico-text">
+            {{ consulta.diagnostico }} {% if consulta.cid %}
+            <span class="cid-tag">CID-10: {{ consulta.cid }}</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Flags: solicitação de exame e prescrição -->
+        <div class="flags-row">
+          <div
+            class="flag-chip {{ 'flag-chip-yes' if consulta.houve_solicitacao_de_exame else 'flag-chip-no' }}"
+          >
+            <span
+              class="flag-dot {{ 'flag-dot-yes' if consulta.houve_solicitacao_de_exame else 'flag-dot-no' }}"
+            ></span>
+            Solicitação de Exame: {{ "Sim" if
+            consulta.houve_solicitacao_de_exame else "Não" }}
+          </div>
+          <div
+            class="flag-chip {{ 'flag-chip-yes' if consulta.houve_prescricao_medicamentos else 'flag-chip-no' }}"
+          >
+            <span
+              class="flag-dot {{ 'flag-dot-yes' if consulta.houve_prescricao_medicamentos else 'flag-dot-no' }}"
+            ></span>
+            Prescrição Médica: {{ "Sim" if
+            consulta.houve_prescricao_medicamentos else "Não" }}
+          </div>
+        </div>
+
+        <!-- Medicamentos -->
+        {% if consulta.houve_prescricao_medicamentos and
+        consulta.medicamentos_prescrevidos %}
+        <div class="content-block" style="margin-top: 6px">
+          <div class="content-label">Medicamentos Prescritos</div>
+          <div class="content-text">
+            {{ consulta.medicamentos_prescrevidos }}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Retorno -->
+        {% if consulta.retorno_em or consulta.data_retorno %}
+        <div class="retorno-box">
+          <strong>Retorno:</strong>
+          {% if consulta.data_retorno %} {{ consulta.data_retorno_br }} {% endif
+          %} {% if consulta.retorno_em %} ({{ consulta.retorno_em }} dias) {%
+          endif %}
+        </div>
+        {% endif %}
+
+        <!-- Observações internas -->
+        {% if consulta.observacoes_internas %}
+        <div class="obs-box">
+          <div class="obs-label">Observações Internas</div>
+          <div class="obs-text">{{ consulta.observacoes_internas }}</div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Footer: auditoria -->
+      {% if consulta.created_at or consulta.updated_at %}
+      <div class="consulta-footer">
+        {% if consulta.created_at %}
+        <span>Criado em: {{ consulta.created_at }}</span>
+        {% endif %} {% if consulta.updated_at %}
+        <span>Atualizado em: {{ consulta.updated_at }}</span>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %} {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">📋</div>
+      <div class="empty-state-text">
+        Nenhuma consulta encontrada para este paciente {% if filtros_aplicados
+        %}com os filtros aplicados{% endif %}.
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- RODAPÉ -->
+    <footer class="document-footer">
+      <p class="footer-text">
+        <strong>{{ clinica_nome }}</strong><br />
+        Documento gerado eletronicamente em {{ data_geracao }}<br />
+        Este prontuário contém informações protegidas pelo sigilo médico (CFM
+        Res. 1.605/2000) e pela LGPD (Lei 13.709/2018).<br />
+        A divulgação não autorizada está sujeita às penalidades legais cabíveis.
+      </p>
+    </footer>
+  </body>
+</html>

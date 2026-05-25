@@ -1,0 +1,67 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "pip"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:15"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 5
+    groups:
+      python-runtime:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:30"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 5
+    groups:
+      frontend-runtime:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "docker"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:45"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: "docker"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: "docker-compose"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:15"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 3

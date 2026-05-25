@@ -1,0 +1,295 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   CMI-PCG – CSS Variable Defaults
+   O hook useTheme aplica as vars da paleta ativa via JS.
+   Estes são apenas fallbacks para o primeiro render.
+   ============================================ */
+
+:root {
+  --primary-100: #e85d04;
+  --primary-200: #f48c3c;
+  --primary-300: #fff2e6;
+
+  --accent-100: #f5f5f5;
+  --accent-200: #8c8c8c;
+
+  --text-100: #1a1c1e;
+  --text-200: #5c5e62;
+
+  --bg-100: #ffffff;
+  --bg-200: #f7f7f8;
+  --bg-300: #dcdde0;
+
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.5rem;
+
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-sm: 0 6px 18px -12px rgba(0,0,0,0.20);
+  --shadow-md: 0 14px 40px -22px rgba(0,0,0,0.30);
+
+  --ring: var(--primary-200);
+  --ring-soft: color-mix(in srgb, var(--primary-200) 40%, transparent);
+
+  /* Cores semânticas (fixas por modo) */
+  --color-success: #16a34a;
+  --color-success-light: #dcfce7;
+  --color-danger: #ef4444;
+  --color-danger-light: #fee2e2;
+  --color-warning: #f59e0b;
+  --color-warning-light: #fef3c7;
+
+  color-scheme: light;
+}
+
+/* ── Dark mode: apenas ajustes que não são cores (sombras, color-scheme) ── */
+:root[data-theme="dark"] {
+  --shadow-xs: 0 1px 3px rgba(0,0,0,0.40);
+  --shadow-sm: 0 8px 20px -12px rgba(0,0,0,0.55);
+  --shadow-md: 0 18px 45px -25px rgba(0,0,0,0.65);
+
+  /* Semânticas no dark: fundo escuro tintado, texto desaturado */
+  --color-success: #4ade80;
+  --color-success-light: rgba(74, 222, 128, 0.12);
+  --color-danger: #f87171;
+  --color-danger-light: rgba(248, 113, 113, 0.12);
+  --color-warning: #fbbf24;
+  --color-warning-light: rgba(251, 191, 36, 0.12);
+
+  color-scheme: dark;
+}
+
+/* ============================================
+   Base
+   ============================================ */
+
+@layer base {
+  html {
+    text-rendering: geometricPrecision;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-bg-100 text-text-100 antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.45;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight text-text-100;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  ::selection {
+    background: color-mix(in srgb, var(--primary-200) 35%, transparent);
+  }
+
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--ring-soft);
+  }
+
+  :focus:not(:focus-visible) {
+    outline: none;
+    box-shadow: none;
+  }
+
+  /*
+   * Transição suave de tema (bg + border + color).
+   * Evita flash ao trocar claro ↔ escuro.
+   */
+  *, *::before, *::after {
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease;
+  }
+
+  /* Elementos interativos: transição mais completa */
+  button, a, input, select, textarea {
+    transition: background-color 0.15s ease, border-color 0.15s ease,
+                color 0.15s ease, box-shadow 0.15s ease,
+                transform 0.15s ease, opacity 0.15s ease;
+  }
+}
+
+/* ============================================
+   Componentes
+   ============================================ */
+
+@layer components {
+  /* ── Page padding (responsivo HD / FHD) ── */
+  .page-padding { padding: 1rem; }
+  @media (min-width: 1280px) { .page-padding { padding: 1.5rem; } }
+  @media (min-width: 1536px) { .page-padding { padding: 2rem 2.5rem; } }
+
+  /* ── Buttons ── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
+           font-medium text-sm
+           disabled:opacity-50 disabled:cursor-not-allowed;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-xs);
+  }
+  .btn-primary { @apply btn bg-primary-100 text-white hover:bg-primary-200 active:scale-[0.98]; }
+  .btn-secondary { @apply btn bg-bg-200 text-text-200 hover:bg-bg-300; box-shadow: none; }
+  .btn-outline { @apply btn border-2 border-primary-100 text-primary-100 bg-transparent hover:bg-bg-200; box-shadow: none; }
+  .btn-ghost { @apply btn text-text-200 bg-transparent hover:bg-bg-200; box-shadow: none; }
+  .btn-danger { @apply btn bg-danger text-white hover:opacity-90; box-shadow: none; }
+  .btn-success { @apply btn bg-success text-white hover:opacity-90; box-shadow: none; }
+  .btn-sm { @apply px-3 py-1.5 text-xs; border-radius: var(--radius-sm); }
+  .btn-lg { @apply px-6 py-3 text-base; border-radius: var(--radius-xl); }
+  .btn-icon { @apply p-2.5; border-radius: var(--radius-md); box-shadow: none; }
+
+  /* ── Inputs ── */
+  .label { @apply block text-sm font-medium text-text-200 mb-1.5; }
+
+  .input {
+    @apply w-full px-4 py-2.5 bg-bg-100 border border-bg-300
+           text-text-100 placeholder:text-text-200
+           focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-transparent
+           disabled:bg-bg-200 disabled:cursor-not-allowed;
+    border-radius: var(--radius-md);
+  }
+
+  .select {
+    @apply input appearance-none cursor-pointer pr-10
+           bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')]
+           bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em_1.5em];
+  }
+
+  .textarea {
+    @apply w-full px-4 py-2.5 bg-bg-100 border border-bg-300
+           text-text-100 placeholder:text-text-200
+           focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-transparent
+           disabled:bg-bg-200 disabled:cursor-not-allowed;
+    border-radius: var(--radius-md);
+    line-height: 1.5;
+    resize: vertical;
+  }
+
+  .input-with-icon { @apply input pl-10; }
+  .input-icon { @apply absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-text-200; }
+
+  /* ── Cards ──
+   * bg-bg-100 = superfície do card (no dark: cinza escuro, NUNCA branco)
+   * border-bg-300 = borda sutil
+   */
+  .card {
+    @apply bg-bg-100 border border-bg-300;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+    padding: clamp(0.875rem, 1.2vw + 0.6rem, 1.5rem);
+  }
+  .card-hover { @apply card cursor-pointer; }
+  .card-hover:hover { box-shadow: var(--shadow-md); }
+  .card-interactive { @apply card cursor-pointer; }
+  .card-interactive:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--primary-200) 50%, var(--bg-300));
+    box-shadow: var(--shadow-md);
+  }
+
+  /* ── Badges ── */
+  .badge { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium; }
+  .badge-primary { @apply badge bg-bg-200 text-primary-100; }
+  .badge-success { @apply badge bg-success-light text-success; }
+  .badge-warning { @apply badge bg-warning-light text-warning; }
+  .badge-danger { @apply badge bg-danger-light text-danger; }
+  .badge-info { @apply badge bg-bg-200 text-text-200; }
+  .badge-secondary { @apply badge bg-bg-200 text-text-200; }
+
+  /* ── Sidebar ── */
+  .sidebar-link {
+    @apply flex items-center gap-3 px-4 py-3
+           font-medium hover:bg-bg-200 hover:text-text-100 cursor-pointer;
+    border-radius: var(--radius-lg);
+  }
+  .sidebar-link-active {
+    @apply bg-primary-100 text-white hover:bg-primary-200 hover:text-white;
+    box-shadow: 0 10px 24px -18px color-mix(in srgb, var(--primary-100) 50%, transparent);
+  }
+
+  /* ── Avatar ── */
+  .avatar {
+    @apply inline-flex items-center justify-center rounded-full
+           bg-gradient-to-br from-primary-100 to-primary-200 text-white font-semibold;
+  }
+  .avatar-sm { @apply avatar w-8 h-8 text-xs; }
+  .avatar-md { @apply avatar w-10 h-10 text-sm; }
+  .avatar-lg { @apply avatar w-12 h-12 text-base; }
+  .avatar-xl { @apply avatar w-16 h-16 text-xl; }
+
+  /* ── Tables ── */
+  .table-container {
+    @apply w-full overflow-x-auto;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--bg-300);
+    background: var(--bg-100);
+  }
+  .table { @apply w-full text-sm; }
+  .table th {
+    @apply px-4 py-3 text-left text-xs font-semibold text-text-200
+           uppercase tracking-wider bg-bg-200 border-b border-bg-300;
+  }
+  .table td { @apply px-4 py-3 text-text-200 border-b border-bg-300; }
+  .table tr:last-child td { @apply border-b-0; }
+  .table tr:hover td { background: color-mix(in srgb, var(--bg-200) 60%, var(--bg-100)); }
+
+  /* ── Alerts ── */
+  .alert { @apply flex items-start gap-3 p-4 border; border-radius: var(--radius-xl); }
+  .alert-info { @apply alert bg-bg-200 border-bg-300 text-text-100; }
+  .alert-success {
+    @apply alert bg-success-light text-success;
+    border-color: color-mix(in srgb, var(--color-success) 30%, transparent);
+  }
+  .alert-warning {
+    @apply alert bg-warning-light text-warning;
+    border-color: color-mix(in srgb, var(--color-warning) 30%, transparent);
+  }
+  .alert-danger {
+    @apply alert bg-danger-light text-danger;
+    border-color: color-mix(in srgb, var(--color-danger) 30%, transparent);
+  }
+
+  /* ── Empty state ── */
+  .empty-state { @apply flex flex-col items-center justify-center py-12 px-4 text-center; }
+  .empty-state-icon { @apply w-16 h-16 text-bg-300 mb-4; }
+  .empty-state-title { @apply text-lg font-semibold text-text-100 mb-2; }
+  .empty-state-description { @apply text-text-200 max-w-sm; }
+
+  /* ── Semantic borders (CSS vars não suportam /opacity no Tailwind @apply) ── */
+  .border-semantic-success { border-color: color-mix(in srgb, var(--color-success) 30%, transparent); }
+  .border-semantic-danger  { border-color: color-mix(in srgb, var(--color-danger) 30%, transparent); }
+  .border-semantic-warning { border-color: color-mix(in srgb, var(--color-warning) 30%, transparent); }
+}
+
+/* ============================================
+   Motion preferences (acessibilidade)
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================
+   Scrollbar
+   ============================================ */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--bg-300) 70%, transparent);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--accent-200) 55%, transparent);
+  background-clip: content-box;
+}

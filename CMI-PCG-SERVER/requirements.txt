@@ -1,0 +1,49 @@
+# Core
+flask
+flask-sqlalchemy
+flask-migrate
+psycopg2-binary
+python-dotenv
+requests
+reportlab
+holidays
+openpyxl
+
+# Validação/Serialização
+marshmallow
+flask-marshmallow
+
+# Datas/Horários
+pendulum
+pytz
+python-dateutil
+
+# Formatador python
+pylint
+
+# Geração de pdf's
+weasyprint
+pdfplumber
+jinja2
+
+# Testes
+pytest
+pytest-flask
+pytest-postgresql
+
+# JWT
+flask-jwt-extended
+
+# Hash de senhas (Argon2id)
+argon2-cffi
+
+# Cache / fila / analytics
+pandas
+numpy
+celery
+redis
+Flask-Caching
+
+# Logs
+rich
+python-json-logger
