@@ -101,7 +101,7 @@ services:
         max-file: "3"
 
   redis:
-    image: redis:7.4-alpine
+    image: redis:8.6-alpine
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes", "--maxmemory", "${REDIS_MAXMEMORY:-128mb}", "--maxmemory-policy", "allkeys-lru"]
     volumes:
