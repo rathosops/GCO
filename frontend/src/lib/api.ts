@@ -5,6 +5,7 @@ import type {
   PanelState,
   Room,
   RoomKind,
+  TenantProfile,
   TokenResponse,
   User,
 } from "@/types/api";
@@ -82,8 +83,23 @@ export function getMe(token: string): Promise<User> {
   return request<User>("/v1/auth/me", {}, { token });
 }
 
-export function listRooms(): Promise<Room[]> {
-  return request<Room[]>("/v1/rooms");
+export function getTenantProfile(): Promise<TenantProfile> {
+  return request<TenantProfile>("/v1/tenant/profile");
+}
+
+export function updateTenantProfile(
+  token: string,
+  profile: Omit<TenantProfile, "id">,
+): Promise<TenantProfile> {
+  return request<TenantProfile>(
+    "/v1/tenant/profile",
+    { method: "PUT", body: JSON.stringify(profile) },
+    { token },
+  );
+}
+
+export function listRooms(token?: string | null): Promise<Room[]> {
+  return request<Room[]>("/v1/rooms", {}, { token });
 }
 
 export function createRoom(

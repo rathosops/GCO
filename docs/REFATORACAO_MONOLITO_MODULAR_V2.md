@@ -272,7 +272,7 @@ gco/
 │   │   │   └── sound.ts
 │   │   └── types/
 │   └── public/
-│       ├── logo_cmi.png
+│       ├── logo.png
 │       └── sfx/
 └── infra/
     ├── nginx/
@@ -1010,4 +1010,3 @@ A V2 so deve ser considerada pronta quando:
 - Frontend sem regra de negocio sensivel.
 - Docker reproduzivel.
 - Nenhum legado estrutural obrigatorio.
-

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { getPanelState } from "@/lib/api";
 import { playCallTone } from "@/lib/sound";
+import { tenantConfig } from "@/lib/tenant";
 import { connectPanelSocket } from "@/lib/ws";
 import type { PanelCall, PanelEvent } from "@/types/api";
 
@@ -84,7 +85,7 @@ export default function PainelPage() {
     <main className="tv-shell">
       <header className="tv-header">
         <div>
-          <p className="eyebrow">GCO</p>
+          <p className="eyebrow">{tenantConfig.appName}</p>
           <h1>Chamadas</h1>
         </div>
         <span className={isConnected ? "status online" : "status"}>

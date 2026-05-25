@@ -7,10 +7,12 @@ from app.api.v1.auth import router as auth_router
 from app.api.v1.calls import router as calls_router
 from app.api.v1.panel import router as panel_router
 from app.api.v1.rooms import router as rooms_router
+from app.api.v1.tenant import router as tenant_router
 from app.api.v1.triage import router as triage_router
 
 router = APIRouter(prefix="/v1")
 router.include_router(auth_router)
+router.include_router(tenant_router)
 router.include_router(rooms_router)
 router.include_router(appointments_router)
 router.include_router(triage_router)

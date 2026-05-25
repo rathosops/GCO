@@ -8,6 +8,7 @@ from app.core.database import Base
 from app.modules.appointments.models import Appointment
 from app.modules.auth.models import User
 from app.modules.rooms.models import Room
+from app.modules.tenant.models import TenantProfile
 from app.modules.triage.models import TriageRecord
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -29,6 +30,7 @@ def db_session() -> Generator[Session]:
             User.__table__,
             Appointment.__table__,
             Room.__table__,
+            TenantProfile.__table__,
             TriageRecord.__table__,
         ],
     )

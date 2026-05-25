@@ -6,6 +6,24 @@ export type User = {
   display_name: string;
   role: UserRole;
   is_active: boolean;
+  permissions?: string[];
+};
+
+export type TenantProfile = {
+  id: number | null;
+  trade_name: string;
+  legal_name: string | null;
+  document: string | null;
+  email: string | null;
+  phone: string | null;
+  address_line: string | null;
+  city: string | null;
+  state: string | null;
+  postal_code: string | null;
+  logo_url: string | null;
+  primary_color: string | null;
+  timezone: string;
+  is_active: boolean;
 };
 
 export type TokenResponse = {

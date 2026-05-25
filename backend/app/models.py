@@ -6,6 +6,7 @@ from app.modules.auth.models import User
 from app.modules.calls.models import Call
 from app.modules.panel.models import PanelSetting
 from app.modules.rooms.models import Room
+from app.modules.tenant.models import TenantProfile
 from app.modules.triage.models import TriageRecord
 
 __all__ = [
@@ -14,6 +15,7 @@ __all__ = [
     "Call",
     "PanelSetting",
     "Room",
+    "TenantProfile",
     "TriageRecord",
     "User",
 ]

@@ -746,6 +746,13 @@ Aceite:
 
 Em uma rodada futura, a IA deve executar apenas uma fase por vez, salvo autorizacao explicita.
 
+Para a expansao do GCO alem do sistema de chamadas, use tambem:
+
+- `docs/SDD_MIGRACAO_SUPERSERVIDOR_GCO.md`
+- `docs/ARQUITETURA_GCO_SUPERSERVIDOR.md`
+- `docs/MAPA_MODULOS_GCO.md`
+- `docs/GUIA_IA_MIGRACAO_GCO.md`
+
 Formato recomendado de pedido:
 
 ```text
@@ -883,3 +890,5 @@ Mitigacao:
 - Executada a Fase G: Dockerfiles multi-stage revisados, gateway nao-root, logs centralizados, limites para Raspberry Pi, testes criticos e documentacao de deploy.
 - Validado `python -m ruff format --check .`, `python -m ruff check .`, `python -m pytest`, `npm run lint`, `npm run typecheck`, `npm run build`, `docker compose config`, `docker compose build api web`, `docker compose up -d`, `alembic upgrade head`, `alembic check`, `/api/health`, `/api/health/ready`, gateway `/health` e frontend via gateway em `/operador`.
 - Registrada pendencia de seguranca: npm audit reporta 2 vulnerabilidades moderadas em dependencias transitivas do frontend; corrigir em rodada dedicada para evitar upgrade forcado com breaking changes.
+- Criado SDD da migracao do superservidor GCO para planejar a incorporacao das funcionalidades de `CMI-PCG-SERVER` e `CMI-PCG-FRONTEND` em arquitetura FastAPI/Next.js white-label.
+- Criados documentos auxiliares `ARQUITETURA_GCO_SUPERSERVIDOR.md`, `MAPA_MODULOS_GCO.md` e `GUIA_IA_MIGRACAO_GCO.md`.

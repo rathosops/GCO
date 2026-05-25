@@ -57,7 +57,7 @@ export default function OperadorPage() {
     const [nextAppointments, nextCalls, nextRooms] = await Promise.all([
       listAppointments(session.token),
       listCalls(session.token),
-      listRooms(),
+      listRooms(session.token),
     ]);
     setAppointments(nextAppointments);
     setCalls(nextCalls);

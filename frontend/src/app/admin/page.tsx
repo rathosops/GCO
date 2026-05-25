@@ -3,13 +3,38 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
-import { ApiError, createRoom, listRooms } from "@/lib/api";
+import {
+  ApiError,
+  createRoom,
+  getTenantProfile,
+  listRooms,
+  updateTenantProfile,
+} from "@/lib/api";
 import { useSessionGuard } from "@/lib/auth";
-import type { Room, RoomKind } from "@/types/api";
+import type { Room, RoomKind, TenantProfile } from "@/types/api";
+
+const emptyTenant: Omit<TenantProfile, "id"> = {
+  trade_name: "",
+  legal_name: null,
+  document: null,
+  email: null,
+  phone: null,
+  address_line: null,
+  city: null,
+  state: null,
+  postal_code: null,
+  logo_url: null,
+  primary_color: null,
+  timezone: "America/Sao_Paulo",
+  is_active: true,
+};
 
 export default function AdminPage() {
-  const { session, isLoading, signOut } = useSessionGuard();
+  const { session, isLoading, signOut } = useSessionGuard({
+    permission: "tenant.manage",
+  });
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [tenant, setTenant] = useState<Omit<TenantProfile, "id">>(emptyTenant);
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -17,8 +42,31 @@ export default function AdminPage() {
   const [message, setMessage] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
-    setRooms(await listRooms());
-  }, []);
+    if (!session) {
+      return;
+    }
+
+    const [nextRooms, nextTenant] = await Promise.all([
+      listRooms(session.token),
+      getTenantProfile(),
+    ]);
+    setRooms(nextRooms);
+    setTenant({
+      trade_name: nextTenant.trade_name,
+      legal_name: nextTenant.legal_name,
+      document: nextTenant.document,
+      email: nextTenant.email,
+      phone: nextTenant.phone,
+      address_line: nextTenant.address_line,
+      city: nextTenant.city,
+      state: nextTenant.state,
+      postal_code: nextTenant.postal_code,
+      logo_url: nextTenant.logo_url,
+      primary_color: nextTenant.primary_color,
+      timezone: nextTenant.timezone,
+      is_active: nextTenant.is_active,
+    });
+  }, [session]);
 
   useEffect(() => {
     loadData().catch((caught) => {
@@ -28,7 +76,41 @@ export default function AdminPage() {
     });
   }, [loadData]);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleTenantSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!session) {
+      return;
+    }
+
+    try {
+      const nextTenant = await updateTenantProfile(session.token, tenant);
+      setTenant({
+        trade_name: nextTenant.trade_name,
+        legal_name: nextTenant.legal_name,
+        document: nextTenant.document,
+        email: nextTenant.email,
+        phone: nextTenant.phone,
+        address_line: nextTenant.address_line,
+        city: nextTenant.city,
+        state: nextTenant.state,
+        postal_code: nextTenant.postal_code,
+        logo_url: nextTenant.logo_url,
+        primary_color: nextTenant.primary_color,
+        timezone: nextTenant.timezone,
+        is_active: nextTenant.is_active,
+      });
+      setMessage("Perfil da clinica atualizado");
+    } catch (caught) {
+      const text =
+        caught instanceof ApiError
+          ? caught.message
+          : "Falha ao atualizar perfil da clinica";
+      setMessage(text);
+    }
+  }
+
+  async function handleRoomSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!session) {
@@ -66,7 +148,7 @@ export default function AdminPage() {
       <header className="topbar">
         <div>
           <p className="eyebrow">Administracao</p>
-          <h1>Salas</h1>
+          <h1>Configuracoes</h1>
           <p className="meta">{session.user.display_name}</p>
         </div>
         <nav className="actions">
@@ -82,7 +164,111 @@ export default function AdminPage() {
       {message ? <p className="alert">{message}</p> : null}
 
       <section className="workspace two-columns">
-        <form className="panel form-stack" onSubmit={handleSubmit}>
+        <form className="panel form-stack" onSubmit={handleTenantSubmit}>
+          <h2>Perfil da clinica</h2>
+          <label>
+            Nome comercial
+            <input
+              onChange={(event) =>
+                setTenant((current) => ({
+                  ...current,
+                  trade_name: event.target.value,
+                }))
+              }
+              required
+              value={tenant.trade_name}
+            />
+          </label>
+          <label>
+            Razao social
+            <input
+              onChange={(event) =>
+                setTenant((current) => ({
+                  ...current,
+                  legal_name: event.target.value || null,
+                }))
+              }
+              value={tenant.legal_name ?? ""}
+            />
+          </label>
+          <label>
+            CNPJ
+            <input
+              onChange={(event) =>
+                setTenant((current) => ({
+                  ...current,
+                  document: event.target.value || null,
+                }))
+              }
+              value={tenant.document ?? ""}
+            />
+          </label>
+          <label>
+            Email
+            <input
+              onChange={(event) =>
+                setTenant((current) => ({
+                  ...current,
+                  email: event.target.value || null,
+                }))
+              }
+              value={tenant.email ?? ""}
+            />
+          </label>
+          <label>
+            Telefone
+            <input
+              onChange={(event) =>
+                setTenant((current) => ({
+                  ...current,
+                  phone: event.target.value || null,
+                }))
+              }
+              value={tenant.phone ?? ""}
+            />
+          </label>
+          <label>
+            Cidade
+            <input
+              onChange={(event) =>
+                setTenant((current) => ({
+                  ...current,
+                  city: event.target.value || null,
+                }))
+              }
+              value={tenant.city ?? ""}
+            />
+          </label>
+          <label>
+            UF
+            <input
+              maxLength={2}
+              onChange={(event) =>
+                setTenant((current) => ({
+                  ...current,
+                  state: event.target.value || null,
+                }))
+              }
+              value={tenant.state ?? ""}
+            />
+          </label>
+          <label>
+            Cor principal
+            <input
+              onChange={(event) =>
+                setTenant((current) => ({
+                  ...current,
+                  primary_color: event.target.value || null,
+                }))
+              }
+              placeholder="#0f766e"
+              value={tenant.primary_color ?? ""}
+            />
+          </label>
+          <button className="button primary">Salvar perfil</button>
+        </form>
+
+        <form className="panel form-stack" onSubmit={handleRoomSubmit}>
           <h2>Nova sala</h2>
           <label>
             Codigo
@@ -110,7 +296,9 @@ export default function AdminPage() {
           </label>
           <button className="button primary">Criar sala</button>
         </form>
+      </section>
 
+      <section className="workspace">
         <section className="panel">
           <div className="section-head">
             <h2>Salas cadastradas</h2>

@@ -28,6 +28,7 @@ class UserRead(BaseModel):
     display_name: str
     role: UserRole
     is_active: bool
+    permissions: list[str] = Field(default_factory=list)
 
     model_config = {"from_attributes": True}
 

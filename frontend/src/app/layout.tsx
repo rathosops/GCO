@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+import { tenantConfig } from "@/lib/tenant";
+
 export const metadata: Metadata = {
-  title: "GCO V2",
-  description: "Sistema de chamadas GCO V2",
+  title: tenantConfig.appName,
+  description: tenantConfig.description,
 };
 
 export default function RootLayout({
@@ -17,4 +19,3 @@ export default function RootLayout({
     </html>
   );
 }
-

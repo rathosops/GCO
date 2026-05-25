@@ -4,10 +4,14 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import { getMe, logout } from "@/lib/api";
+import { can, type Permission } from "@/lib/permissions";
+import { storageKey } from "@/lib/tenant";
 import type { User } from "@/types/api";
 
-const TOKEN_KEY = "gco.accessToken";
-const USER_KEY = "gco.user";
+const LEGACY_TOKEN_KEY = "gco.accessToken";
+const LEGACY_USER_KEY = "gco.user";
+const TOKEN_KEY = storageKey("accessToken");
+const USER_KEY = storageKey("user");
 
 export type Session = {
   token: string;
@@ -15,7 +19,10 @@ export type Session = {
 };
 
 export function readToken(): string | null {
-  return window.localStorage.getItem(TOKEN_KEY);
+  return (
+    window.localStorage.getItem(TOKEN_KEY) ??
+    window.localStorage.getItem(LEGACY_TOKEN_KEY)
+  );
 }
 
 export function saveSession(token: string, user: User): void {
@@ -26,10 +33,14 @@ export function saveSession(token: string, user: User): void {
 export function clearSession(): void {
   window.localStorage.removeItem(TOKEN_KEY);
   window.localStorage.removeItem(USER_KEY);
+  window.localStorage.removeItem(LEGACY_TOKEN_KEY);
+  window.localStorage.removeItem(LEGACY_USER_KEY);
 }
 
 export function readCachedUser(): User | null {
-  const value = window.localStorage.getItem(USER_KEY);
+  const value =
+    window.localStorage.getItem(USER_KEY) ??
+    window.localStorage.getItem(LEGACY_USER_KEY);
 
   if (!value) {
     return null;
@@ -43,7 +54,11 @@ export function readCachedUser(): User | null {
   }
 }
 
-export function useSessionGuard() {
+type SessionGuardOptions = {
+  permission?: Permission;
+};
+
+export function useSessionGuard(options: SessionGuardOptions = {}) {
   const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -70,11 +85,22 @@ export function useSessionGuard() {
     const cachedUser = readCachedUser();
 
     if (cachedUser) {
+      if (options.permission && !can(cachedUser, options.permission)) {
+        router.replace("/");
+        return;
+      }
+
       setSession({ token, user: cachedUser });
     }
 
     getMe(token)
       .then((user) => {
+        if (options.permission && !can(user, options.permission)) {
+          clearSession();
+          router.replace("/");
+          return;
+        }
+
         saveSession(token, user);
         setSession({ token, user });
       })
@@ -85,7 +111,7 @@ export function useSessionGuard() {
       .finally(() => {
         setIsLoading(false);
       });
-  }, [router]);
+  }, [options.permission, router]);
 
   return { session, isLoading, signOut };
 }

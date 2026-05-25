@@ -51,3 +51,11 @@ class User(Base, TimestampMixin):
         """Return the user role as an enum value."""
 
         return UserRole(self.role)
+
+    @property
+    def permissions(self) -> list[str]:
+        """Return permissions calculated from the current role."""
+
+        from app.modules.auth.permissions import permissions_for_role
+
+        return permissions_for_role(self.role_enum)

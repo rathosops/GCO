@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db_session
 from app.core.security import decode_access_token
 from app.modules.auth.models import User, UserRole
+from app.modules.auth.permissions import Permission, has_permissions
 from app.modules.auth.repository import UserRepository
 
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -59,6 +60,20 @@ def require_roles(*roles: UserRole) -> Callable[[User], User]:
 
     def dependency(user: User = Depends(get_current_user)) -> User:
         if user.role_enum not in roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Permissao insuficiente",
+            )
+        return user
+
+    return dependency
+
+
+def require_permissions(*permissions: Permission | str) -> Callable[[User], User]:
+    """Return a dependency that requires all listed permissions."""
+
+    def dependency(user: User = Depends(get_current_user)) -> User:
+        if not has_permissions(user.permissions, permissions):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Permissao insuficiente",
