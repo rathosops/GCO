@@ -89,7 +89,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gco}
       TZ: ${APP_TIMEZONE:-America/Sao_Paulo}
     volumes:
-      - gco_v2_postgres_data:/var/lib/postgresql/data
+      - gco_v2_postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-gco} -d ${POSTGRES_DB:-gco}"]
       interval: 10s

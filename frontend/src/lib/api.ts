@@ -2,10 +2,17 @@ import type {
   Appointment,
   Call,
   CallKind,
+  ClinicalRecord,
+  ClinicalRecordListResponse,
+  ClinicalRecordPayload,
+  ExamRequest,
+  ExamRequestPayload,
   PanelState,
   Patient,
   PatientListResponse,
   PatientPayload,
+  Prescription,
+  PrescriptionPayload,
   Room,
   RoomKind,
   TenantProfile,
@@ -150,6 +157,129 @@ export function updatePatient(
   );
 }
 
+export function listClinicalRecords(
+  token: string,
+  filters: {
+    patient_id?: number;
+    appointment_id?: number;
+    limit?: number;
+    offset?: number;
+  } = {},
+): Promise<ClinicalRecordListResponse> {
+  const params = new URLSearchParams();
+
+  if (filters.patient_id) {
+    params.set("patient_id", String(filters.patient_id));
+  }
+
+  if (filters.appointment_id) {
+    params.set("appointment_id", String(filters.appointment_id));
+  }
+
+  if (filters.limit) {
+    params.set("limit", String(filters.limit));
+  }
+
+  if (filters.offset) {
+    params.set("offset", String(filters.offset));
+  }
+
+  const queryString = params.toString();
+  return request<ClinicalRecordListResponse>(
+    `/v1/clinical-records${queryString ? `?${queryString}` : ""}`,
+    {},
+    { token },
+  );
+}
+
+export function createClinicalRecord(
+  token: string,
+  record: ClinicalRecordPayload,
+): Promise<ClinicalRecord> {
+  return request<ClinicalRecord>(
+    "/v1/clinical-records",
+    { method: "POST", body: JSON.stringify(record) },
+    { token },
+  );
+}
+
+export function updateClinicalRecord(
+  token: string,
+  recordId: number,
+  record: ClinicalRecordPayload,
+): Promise<ClinicalRecord> {
+  return request<ClinicalRecord>(
+    `/v1/clinical-records/${recordId}`,
+    { method: "PUT", body: JSON.stringify(record) },
+    { token },
+  );
+}
+
+export function finishClinicalRecord(
+  token: string,
+  recordId: number,
+): Promise<ClinicalRecord> {
+  return request<ClinicalRecord>(
+    `/v1/clinical-records/${recordId}/finish`,
+    { method: "POST" },
+    { token },
+  );
+}
+
+export function listPrescriptions(token: string): Promise<Prescription[]> {
+  return request<Prescription[]>("/v1/prescriptions", {}, { token });
+}
+
+export function createPrescription(
+  token: string,
+  prescription: PrescriptionPayload,
+): Promise<Prescription> {
+  return request<Prescription>(
+    "/v1/prescriptions",
+    { method: "POST", body: JSON.stringify(prescription) },
+    { token },
+  );
+}
+
+export function cancelPrescription(
+  token: string,
+  prescriptionId: number,
+  reason: string,
+): Promise<Prescription> {
+  return request<Prescription>(
+    `/v1/prescriptions/${prescriptionId}/cancel`,
+    { method: "POST", body: JSON.stringify({ reason }) },
+    { token },
+  );
+}
+
+export function listExamRequests(token: string): Promise<ExamRequest[]> {
+  return request<ExamRequest[]>("/v1/exam-requests", {}, { token });
+}
+
+export function createExamRequest(
+  token: string,
+  examRequest: ExamRequestPayload,
+): Promise<ExamRequest> {
+  return request<ExamRequest>(
+    "/v1/exam-requests",
+    { method: "POST", body: JSON.stringify(examRequest) },
+    { token },
+  );
+}
+
+export function cancelExamRequest(
+  token: string,
+  examRequestId: number,
+  reason: string,
+): Promise<ExamRequest> {
+  return request<ExamRequest>(
+    `/v1/exam-requests/${examRequestId}/cancel`,
+    { method: "POST", body: JSON.stringify({ reason }) },
+    { token },
+  );
+}
+
 export function listRooms(token?: string | null): Promise<Room[]> {
   return request<Room[]>("/v1/rooms", {}, { token });
 }
@@ -180,6 +310,7 @@ export function createAppointment(
   token: string,
   appointment: {
     patient_name: string;
+    patient_id?: number | null;
     patient_document?: string | null;
     scheduled_for: string;
     requires_triage: boolean;

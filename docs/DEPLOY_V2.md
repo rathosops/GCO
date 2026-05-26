@@ -18,6 +18,15 @@ Obrigatorio em producao:
 - `DATABASE_URL` usando a mesma senha do PostgreSQL
 - `CORS_ORIGINS` restrito ao endereco real do servidor
 
+Observacao sobre PostgreSQL:
+
+- A stack de desenvolvimento usa `postgres:18-alpine` com volume montado em
+  `/var/lib/postgresql`, layout recomendado para imagens PostgreSQL 18+.
+- Ao atualizar um ambiente com dados reais de PostgreSQL 17 ou anterior para 18,
+  execute plano explicito com backup e `pg_upgrade`. Em desenvolvimento, quando
+  os dados puderem ser descartados, use `docker compose down -v` e recrie a
+  stack.
+
 Padroes recomendados para Raspberry Pi:
 
 ```env

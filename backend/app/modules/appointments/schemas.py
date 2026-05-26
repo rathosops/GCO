@@ -10,6 +10,7 @@ from app.modules.appointments.models import AppointmentStatus
 class AppointmentCreate(BaseModel):
     """Input for creating an appointment in the V2 workflow."""
 
+    patient_id: int | None = None
     patient_name: str = Field(min_length=1, max_length=160)
     patient_document: str | None = Field(default=None, max_length=20)
     scheduled_for: datetime
@@ -22,6 +23,7 @@ class AppointmentRead(BaseModel):
     """Appointment representation returned by the API."""
 
     id: int
+    patient_id: int | None
     patient_name: str
     patient_document: str | None
     scheduled_for: datetime

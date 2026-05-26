@@ -1,7 +1,7 @@
 # SDD: Migracao do Superservidor GCO
 
 Data: 2026-05-25
-Status: Proposto
+Status: Em execucao por fases
 Documento relacionado: `docs/SDD_REESTRUTURACAO_V2.md`
 
 ## 1. Proposito
@@ -323,19 +323,50 @@ frontend/src/
 
 Objetivo: documentar arquitetura, modulos, contratos e ordem de migracao.
 
+Status: concluida em 2026-05-26.
+
 Tarefas:
 
-- `T701`: mapear backend legado.
-- `T702`: mapear frontend legado.
-- `T703`: criar SDD desta migracao.
-- `T704`: criar mapa de modulos e guias para IA.
-- `T705`: atualizar README para o novo escopo.
+- `T701`: Concluida. Mapeado backend legado por grupos de controllers,
+  models, services, templates, integracoes e scripts operacionais.
+- `T702`: Concluida. Mapeado frontend legado por features, layout,
+  services HTTP e fluxo operacional.
+- `T703`: Concluida. Criado este SDD para orientar a migracao do
+  superservidor.
+- `T704`: Concluida. Criados mapa de modulos, arquitetura alvo e guia para IA.
+- `T705`: Concluida. Atualizado README para apresentar o GCO como plataforma
+  completa white-label.
+
+Entregue:
+
+- `docs/SDD_MIGRACAO_SUPERSERVIDOR_GCO.md`: escopo, decisoes, contratos,
+  fases, riscos, criterios globais e politica para IAs.
+- `docs/ARQUITETURA_GCO_SUPERSERVIDOR.md`: camadas, modulos centrais,
+  white-label, documentos/PDF e padroes de frontend/backend.
+- `docs/MAPA_MODULOS_GCO.md`: correspondencia entre artefatos legados e
+  modulos novos.
+- `docs/GUIA_IA_MIGRACAO_GCO.md`: regras de trabalho para agentes de IA antes
+  de editar codigo.
+- `README.md`: escopo de produto, arquitetura, modulos alvo, rotas atuais,
+  qualidade e politica white-label.
 
 Aceite:
 
-- Documentos em `docs/` descrevem a nova arquitetura.
-- README apresenta o GCO como plataforma completa white-label.
-- Referencias CMI ficam apenas como legado analisado, nao como marca alvo.
+- Concluido: documentos em `docs/` descrevem a nova arquitetura.
+- Concluido: README apresenta o GCO como plataforma completa white-label.
+- Concluido: referencias CMI ficam apenas como legado analisado, nao como marca
+  alvo.
+
+Rastreabilidade:
+
+- Backend legado analisado em `CMI-PCG-SERVER/app/control`,
+  `CMI-PCG-SERVER/app/models`, `CMI-PCG-SERVER/app/src`,
+  `CMI-PCG-SERVER/templates` e `CMI-PCG-SERVER/app/blueprints.py`.
+- Frontend legado analisado em `CMI-PCG-FRONTEND/src/App.tsx`,
+  `CMI-PCG-FRONTEND/src/components/layout`,
+  `CMI-PCG-FRONTEND/src/features` e `CMI-PCG-FRONTEND/src/services`.
+- O sistema de chamadas legado/prototipo permanece como referencia funcional em
+  `CMI-CHAMADAS-SYSTEM`, sem ser arquitetura alvo da V2.
 
 ### Fase I: Fundacao white-label e identidade
 
@@ -423,11 +454,44 @@ Tarefas:
 
 - agendamentos completos;
 - integracao agenda -> painel de chamadas;
-- consulta;
-- prontuario;
-- receituarios;
-- solicitacoes de exames;
-- comprovantes.
+- consulta [concluido no MVP da fase];
+- prontuario [concluido no MVP da fase];
+- receituarios [concluido no MVP da fase];
+- solicitacoes de exames [concluido no MVP da fase];
+- comprovantes [concluido no MVP da fase].
+
+Entregue em 2026-05-26:
+
+- Criado modulo `clinical_records` com tabela `clinical_records`, services,
+  repository, schemas e rotas REST em `/api/v1/clinical-records`.
+- Criadas permissoes `clinical_records.read` e `clinical_records.write`.
+- Implementado fluxo inicial de consulta: criar rascunho, listar, buscar,
+  editar enquanto estiver em rascunho e finalizar.
+- Prontuario inicial pode ser criado por paciente cadastrado, por agendamento
+  existente ou por snapshot manual do paciente.
+- Finalizacao de consulta vinculada a agendamento atualiza o agendamento para
+  `completed`.
+- Criada rota Next.js `/consultas` para listar, criar, editar e finalizar
+  consultas.
+- Adicionado `appointments.patient_id` opcional, preservando snapshot
+  operacional de nome e documento para fila, painel e historico.
+- Migradas rotas de `appointments`, `calls` e `triage` para RBAC por permissoes.
+- Criado modulo `prescriptions` com receituarios, itens livres, validade por
+  tipo, emissao e cancelamento logico.
+- Criado modulo `exam_requests` com solicitacoes e itens normalizados, calculo
+  de subtotal, desconto e total.
+- Criado comprovante HTML de agendamento em
+  `/api/v1/appointments/{appointment_id}/receipt`.
+- Criadas rotas Next.js `/receituarios` e `/exames` para operacao minima.
+
+Status da fase: concluida como MVP operacional em 2026-05-26.
+
+Pendencias deliberadas para fases futuras:
+
+- Catalogo formal de procedimentos/exames e profissionais depende da Fase J.
+- PDFs definitivos e armazenamento de documentos serao aprofundados no modulo
+  `documents`, usando tenant profile e renderer dedicado.
+- Dispensacao de medicamentos depende de `inventory`.
 
 ### Fase L: Saude ocupacional
 
@@ -531,3 +595,22 @@ Antes de implementar qualquer fase:
 4. Inspecionar os arquivos legados relacionados ao modulo.
 5. Implementar apenas a fase solicitada.
 6. Atualizar SDD e docs se mudar contrato ou arquitetura.
+
+## 13. Changelog
+
+### 2026-05-26
+
+- Executada a Fase H: especificacao do superservidor consolidada como base para
+  as fases H-O.
+- Registrada rastreabilidade das fontes legadas analisadas no backend, frontend
+  e sistema de chamadas.
+- Marcadas tarefas `T701` a `T705` como concluidas.
+- Confirmado que a Fase H nao introduz alteracao de runtime, schema ou
+  dependencia.
+- Iniciada a Fase K com o modulo `clinical_records`, cobrindo consulta e
+  prontuario inicial sem introduzir dependencia de profissionais, empresas ou
+  convenios ainda pendentes da Fase J.
+- Concluida a Fase K como MVP operacional: agendamento vinculado a paciente,
+  painel/chamadas preservados, consulta/prontuario, receituarios, solicitacoes
+  de exames, comprovante HTML, RBAC por permissao e rebuild destrutivo em
+  PostgreSQL 18 para desenvolvimento.

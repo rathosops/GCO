@@ -3,7 +3,16 @@
 from datetime import datetime
 from enum import StrEnum
 
-from sqlalchemy import Boolean, CheckConstraint, Index, String, text
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    CheckConstraint,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base, TimestampMixin
@@ -32,9 +41,19 @@ class Appointment(Base, TimestampMixin):
             name="status_allowed",
         ),
         Index("ix_appointments_scheduled_for_status", "scheduled_for", "status"),
+        Index("ix_appointments_patient_id", "patient_id"),
     )
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(
+        BigInteger().with_variant(Integer(), "sqlite"),
+        primary_key=True,
+        autoincrement=True,
+    )
+    patient_id: Mapped[int | None] = mapped_column(
+        BigInteger().with_variant(Integer(), "sqlite"),
+        ForeignKey("patients.id", ondelete="SET NULL"),
+        nullable=True,
+    )
     patient_name: Mapped[str] = mapped_column(String(160), nullable=False)
     patient_document: Mapped[str | None] = mapped_column(String(20), nullable=True)
     scheduled_for: Mapped[datetime] = mapped_column(nullable=False)

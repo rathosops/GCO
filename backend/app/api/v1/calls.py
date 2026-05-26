@@ -3,9 +3,10 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db, require_roles
+from app.api.deps import get_db, require_permissions
 from app.api.v1.errors import domain_error_to_http
-from app.modules.auth.models import User, UserRole
+from app.modules.auth.models import User
+from app.modules.auth.permissions import Permission
 from app.modules.calls.schemas import CallCreate, CallFinish, CallRead
 from app.modules.calls.service import CallService
 from app.modules.panel.broadcaster import manager
@@ -14,13 +15,11 @@ from app.shared.exceptions import DomainError
 
 router = APIRouter(prefix="/calls", tags=["calls"])
 
-CALL_ROLES = (UserRole.ADMIN, UserRole.OPERATOR, UserRole.DOCTOR, UserRole.TRIAGE)
-
 
 @router.get("", response_model=list[CallRead])
 async def list_calls(
     session: Session = Depends(get_db),
-    _current_user: User = Depends(require_roles(*CALL_ROLES)),
+    _current_user: User = Depends(require_permissions(Permission.CALLS_READ)),
 ) -> list[CallRead]:
     """List recent calls."""
 
@@ -32,7 +31,7 @@ async def list_calls(
 async def create_call(
     payload: CallCreate,
     session: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(*CALL_ROLES)),
+    current_user: User = Depends(require_permissions(Permission.CALLS_MANAGE)),
 ) -> CallRead:
     """Create a call."""
 
@@ -48,7 +47,7 @@ async def create_call(
 async def start_call(
     call_id: int,
     session: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(*CALL_ROLES)),
+    current_user: User = Depends(require_permissions(Permission.CALLS_MANAGE)),
 ) -> CallRead:
     """Start a call."""
 
@@ -65,7 +64,7 @@ async def finish_call(
     call_id: int,
     payload: CallFinish,
     session: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(*CALL_ROLES)),
+    current_user: User = Depends(require_permissions(Permission.CALLS_MANAGE)),
 ) -> CallRead:
     """Finish a call."""
 
@@ -81,7 +80,7 @@ async def finish_call(
 async def cancel_call(
     call_id: int,
     session: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(*CALL_ROLES)),
+    current_user: User = Depends(require_permissions(Permission.CALLS_MANAGE)),
 ) -> CallRead:
     """Cancel a call."""
 

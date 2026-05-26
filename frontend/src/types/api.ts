@@ -78,6 +78,44 @@ export type PatientListResponse = {
   pagination: Pagination;
 };
 
+export type ClinicalRecordStatus = "draft" | "finished";
+
+export type ClinicalRecord = {
+  id: number;
+  patient_id: number | null;
+  appointment_id: number | null;
+  patient_name: string;
+  patient_document: string | null;
+  status: ClinicalRecordStatus;
+  started_at: string;
+  finished_at: string | null;
+  chief_complaint: string | null;
+  history: string | null;
+  physical_exam: string | null;
+  diagnosis: string | null;
+  conduct: string | null;
+  notes: string | null;
+};
+
+export type ClinicalRecordPayload = {
+  patient_id?: number | null;
+  appointment_id?: number | null;
+  patient_name?: string | null;
+  patient_document?: string | null;
+  started_at?: string | null;
+  chief_complaint?: string | null;
+  history?: string | null;
+  physical_exam?: string | null;
+  diagnosis?: string | null;
+  conduct?: string | null;
+  notes?: string | null;
+};
+
+export type ClinicalRecordListResponse = {
+  data: ClinicalRecord[];
+  pagination: Pagination;
+};
+
 export type Room = {
   id: number;
   code: string;
@@ -98,6 +136,7 @@ export type AppointmentStatus =
 
 export type Appointment = {
   id: number;
+  patient_id: number | null;
   patient_name: string;
   patient_document: string | null;
   scheduled_for: string;
@@ -105,6 +144,95 @@ export type Appointment = {
   requires_triage: boolean;
   external_source: string | null;
   external_id: string | null;
+};
+
+export type PrescriptionKind = "simple" | "special_control" | "antimicrobial";
+export type PrescriptionStatus = "active" | "cancelled" | "dispensed";
+
+export type PrescriptionItemPayload = {
+  medication_name: string;
+  dosage?: string | null;
+  route?: string | null;
+  frequency?: string | null;
+  duration?: string | null;
+  quantity?: string | null;
+  unit_price?: string | null;
+  instructions?: string | null;
+};
+
+export type PrescriptionPayload = {
+  patient_id?: number | null;
+  clinical_record_id?: number | null;
+  patient_name?: string | null;
+  patient_document?: string | null;
+  kind: PrescriptionKind;
+  instructions?: string | null;
+  notes?: string | null;
+  items: PrescriptionItemPayload[];
+};
+
+export type PrescriptionItem = PrescriptionItemPayload & {
+  id: number;
+  prescription_id: number;
+};
+
+export type Prescription = {
+  id: number;
+  patient_id: number | null;
+  clinical_record_id: number | null;
+  patient_name: string;
+  patient_document: string | null;
+  kind: PrescriptionKind;
+  status: PrescriptionStatus;
+  issued_at: string;
+  valid_until: string;
+  instructions: string | null;
+  notes: string | null;
+  cancelled_reason: string | null;
+  items: PrescriptionItem[];
+};
+
+export type ExamRequestStatus = "pending" | "billed" | "external" | "cancelled";
+
+export type ExamRequestItemPayload = {
+  exam_name: string;
+  exam_code?: string | null;
+  exam_type?: string | null;
+  unit_price: string;
+  sort_order?: number;
+};
+
+export type ExamRequestPayload = {
+  patient_id?: number | null;
+  clinical_record_id?: number | null;
+  patient_name?: string | null;
+  patient_document?: string | null;
+  status: ExamRequestStatus;
+  discount_amount: string;
+  notes?: string | null;
+  items: ExamRequestItemPayload[];
+};
+
+export type ExamRequestItem = ExamRequestItemPayload & {
+  id: number;
+  exam_request_id: number;
+  sort_order: number;
+};
+
+export type ExamRequest = {
+  id: number;
+  patient_id: number | null;
+  clinical_record_id: number | null;
+  patient_name: string;
+  patient_document: string | null;
+  requested_at: string;
+  status: ExamRequestStatus;
+  subtotal_amount: string;
+  discount_amount: string;
+  total_amount: string;
+  notes: string | null;
+  cancelled_reason: string | null;
+  items: ExamRequestItem[];
 };
 
 export type CallKind = "doctor" | "triage" | "administrative";

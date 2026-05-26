@@ -15,6 +15,12 @@ class Permission(StrEnum):
     APPOINTMENTS_MANAGE = "appointments.manage"
     PATIENTS_READ = "patients.read"
     PATIENTS_WRITE = "patients.write"
+    CLINICAL_RECORDS_READ = "clinical_records.read"
+    CLINICAL_RECORDS_WRITE = "clinical_records.write"
+    PRESCRIPTIONS_READ = "prescriptions.read"
+    PRESCRIPTIONS_WRITE = "prescriptions.write"
+    EXAM_REQUESTS_READ = "exam_requests.read"
+    EXAM_REQUESTS_WRITE = "exam_requests.write"
     CALLS_READ = "calls.read"
     CALLS_MANAGE = "calls.manage"
     ROOMS_READ = "rooms.read"
@@ -33,6 +39,12 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         Permission.APPOINTMENTS_MANAGE,
         Permission.PATIENTS_READ,
         Permission.PATIENTS_WRITE,
+        Permission.CLINICAL_RECORDS_READ,
+        Permission.CLINICAL_RECORDS_WRITE,
+        Permission.PRESCRIPTIONS_READ,
+        Permission.PRESCRIPTIONS_WRITE,
+        Permission.EXAM_REQUESTS_READ,
+        Permission.EXAM_REQUESTS_WRITE,
         Permission.CALLS_READ,
         Permission.CALLS_MANAGE,
         Permission.ROOMS_READ,
@@ -43,7 +55,11 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         Permission.TENANT_READ,
         Permission.APPOINTMENTS_READ,
         Permission.PATIENTS_READ,
+        Permission.CLINICAL_RECORDS_READ,
+        Permission.PRESCRIPTIONS_READ,
+        Permission.EXAM_REQUESTS_READ,
         Permission.CALLS_READ,
+        Permission.CALLS_MANAGE,
         Permission.ROOMS_READ,
         Permission.TRIAGE_READ,
         Permission.TRIAGE_MANAGE,
@@ -53,7 +69,14 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         Permission.TENANT_READ,
         Permission.APPOINTMENTS_READ,
         Permission.PATIENTS_READ,
+        Permission.CLINICAL_RECORDS_READ,
+        Permission.CLINICAL_RECORDS_WRITE,
+        Permission.PRESCRIPTIONS_READ,
+        Permission.PRESCRIPTIONS_WRITE,
+        Permission.EXAM_REQUESTS_READ,
+        Permission.EXAM_REQUESTS_WRITE,
         Permission.CALLS_READ,
+        Permission.CALLS_MANAGE,
         Permission.ROOMS_READ,
         Permission.PANEL_VIEW,
     ),

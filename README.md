@@ -150,6 +150,9 @@ http://localhost:8080
 
 - `/login`: autenticacao.
 - `/pacientes`: cadastro inicial de pacientes.
+- `/consultas`: consulta clinica e prontuario inicial.
+- `/receituarios`: emissao e cancelamento de receituarios.
+- `/exames`: solicitacoes de exames.
 - `/operador`: operacao de chamadas.
 - `/triagem`: conclusao de triagem.
 - `/admin`: administracao minima atual.
@@ -158,9 +161,21 @@ http://localhost:8080
 - `/api/health/ready`: readiness com PostgreSQL e Redis.
 - `/api/v1/tenant/profile`: perfil white-label publico da instalacao.
 - `/api/v1/patients`: cadastro paginado de pacientes.
+- `/api/v1/clinical-records`: consultas e prontuario clinico inicial.
+- `/api/v1/prescriptions`: receituarios e itens.
+- `/api/v1/exam-requests`: solicitacoes de exames e itens.
+- `/api/v1/appointments/{id}/receipt`: comprovante HTML de agendamento.
 
 Novas rotas administrativas e clinicas serao adicionadas conforme o SDD de
 migracao do superservidor.
+
+## Status da migracao
+
+- Fases A-G da reestruturacao V2 concluidas: bootstrap, banco, auth, chamadas,
+  tempo real, frontend e hardening.
+- Fase H da migracao do superservidor concluida: arquitetura, mapa de modulos,
+  guia para IA e novo escopo white-label documentados.
+- Proxima frente planejada: Fase I, fundacao white-label e identidade.
 
 ## Qualidade
 

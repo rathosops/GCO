@@ -5,8 +5,11 @@ from fastapi import APIRouter
 from app.api.v1.appointments import router as appointments_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.calls import router as calls_router
+from app.api.v1.clinical_records import router as clinical_records_router
+from app.api.v1.exam_requests import router as exam_requests_router
 from app.api.v1.panel import router as panel_router
 from app.api.v1.patients import router as patients_router
+from app.api.v1.prescriptions import router as prescriptions_router
 from app.api.v1.rooms import router as rooms_router
 from app.api.v1.tenant import router as tenant_router
 from app.api.v1.triage import router as triage_router
@@ -19,6 +22,9 @@ router.include_router(rooms_router)
 router.include_router(appointments_router)
 router.include_router(triage_router)
 router.include_router(calls_router)
+router.include_router(clinical_records_router)
+router.include_router(prescriptions_router)
+router.include_router(exam_requests_router)
 router.include_router(panel_router)
 
 

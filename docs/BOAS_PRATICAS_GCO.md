@@ -108,6 +108,33 @@ IA que participe da migracao.
 - Logs devem ir para stdout/stderr e nunca conter senhas, tokens ou documentos
   sensiveis completos.
 
+## PostgreSQL e Alembic
+
+- Use SQLAlchemy 2.x com `Mapped`/`mapped_column` nos models e migrations
+  Alembic revisadas manualmente antes de aplicar.
+- `alembic revision --autogenerate` e util para gerar candidatos, mas a
+  migration final deve ser lida e ajustada por pessoa/agente antes de commit.
+- `alembic check` deve passar contra PostgreSQL real antes de concluir fase com
+  alteracao de schema.
+- Nomeie constraints, indices e foreign keys com convencao previsivel para
+  tornar diffs e rollbacks legiveis.
+- Prefira migrations pequenas por fatia de dominio; em desenvolvimento com banco
+  descartavel, ainda preserve cadeia Alembic linear para validar criacao do zero.
+- PostgreSQL em Docker deve usar volume persistente. Para PostgreSQL 18+, monte
+  o volume em `/var/lib/postgresql`; montar diretamente em
+  `/var/lib/postgresql/data` dificulta upgrades de major version.
+- Upgrade real de major version PostgreSQL exige backup e plano com `pg_upgrade`;
+  destruir volume so e aceitavel em desenvolvimento ou ambiente explicitamente
+  descartavel.
+
+Referencias usadas:
+
+- https://alembic.sqlalchemy.org/en/latest/autogenerate.html
+- https://docs.sqlalchemy.org/en/20/orm/
+- https://docs.sqlalchemy.org/en/20/dialects/postgresql.html
+- https://docs.docker.com/guides/postgresql/immediate-setup-and-data-persistence/
+- https://www.postgresql.org/docs/18/pgupgrade.html
+
 ## Migracao Flask para FastAPI
 
 - Leia o legado para descobrir regra de negocio, fluxo e relatorios.
